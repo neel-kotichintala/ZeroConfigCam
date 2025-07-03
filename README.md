@@ -19,7 +19,7 @@ A complete web application for streaming RTSP video from AMB82 cameras with QR c
 │   (Dashboard)   │    │   (Express)     │    │   (Users/Cams) │
 └─────────────────┘    └─────────────────┘    └─────────────────┘
          ▲                       ▲
-         │ Socket.IO              │ HTTP POST
+         │ Socket.IO             │ HTTP POST
          ▼                       │
 ┌─────────────────┐              │
 │   RTSP Stream   │              │
