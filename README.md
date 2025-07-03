@@ -4,19 +4,19 @@ A complete web application for streaming RTSP video from AMB82 cameras with QR c
 
 ## Features
 
-- 🎥 **Live RTSP Streaming**: Real-time video streaming from multiple AMB82 cameras
-- 📱 **QR Code Setup**: Easy camera configuration using QR codes
-- 👤 **User Authentication**: Secure login/registration system
-- 🏠 **Multi-Camera Support**: Manage multiple cameras per user account
-- 📺 **Web Dashboard**: View all your cameras in one place
-- 🔧 **Zero-Config**: Cameras automatically connect and register
+- **Live RTSP Streaming**: Real-time video streaming from multiple AMB82 cameras
+- **QR Code Setup**: Easy camera configuration using QR codes
+- **User Authentication**: Secure login/registration system
+- **Multi-Camera Support**: Manage multiple cameras per user account
+- **Web Dashboard**: View all your cameras in one place
+- **Zero-Config**: Cameras automatically connect and register
 
 ## System Architecture
 
 ```
 ┌─────────────────┐    ┌─────────────────┐    ┌─────────────────┐
 │   Web Browser   │◄──►│   Node.js API   │◄──►│  SQLite Database│
-│   (Dashboard)   │    │   (Express)     │    │   (Users/Cams) │
+│   (Dashboard)   │    │   (Express)     │    │   (Users/Cams)  │
 └─────────────────┘    └─────────────────┘    └─────────────────┘
          ▲                       ▲
          │ Socket.IO             │ HTTP POST
