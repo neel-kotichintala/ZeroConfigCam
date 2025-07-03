@@ -1,0 +1,621 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Camera Setup - RTSP Streamer</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Arial', sans-serif;
+            background: #f5f7fa;
+            min-height: 100vh;
+        }
+
+        .navbar {
+            background: white;
+            padding: 1rem 2rem;
+            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .navbar h1 {
+            color: #667eea;
+            font-size: 1.5rem;
+        }
+
+        .navbar .nav-links {
+            display: flex;
+            align-items: center;
+            gap: 1rem;
+        }
+
+        .btn {
+            padding: 0.5rem 1rem;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            font-size: 0.9rem;
+            text-decoration: none;
+            display: inline-flex;
+            align-items: center;
+            gap: 0.5rem;
+            transition: all 0.3s ease;
+        }
+
+        .btn-primary {
+            background: #667eea;
+            color: white;
+        }
+
+        .btn-primary:hover {
+            background: #5a67d8;
+        }
+
+        .btn-secondary {
+            background: #e2e8f0;
+            color: #4a5568;
+        }
+
+        .btn-secondary:hover {
+            background: #cbd5e0;
+        }
+
+        .btn:disabled {
+            background: #ccc;
+            cursor: not-allowed;
+        }
+
+        .container {
+            max-width: 800px;
+            margin: 0 auto;
+            padding: 2rem;
+        }
+
+        .setup-container {
+            background: white;
+            border-radius: 10px;
+            padding: 2rem;
+            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
+        }
+
+        .setup-header {
+            text-align: center;
+            margin-bottom: 2rem;
+        }
+
+        .setup-header h2 {
+            color: #2d3748;
+            margin-bottom: 0.5rem;
+        }
+
+        .setup-header p {
+            color: #718096;
+        }
+
+        .setup-steps {
+            display: flex;
+            justify-content: center;
+            margin-bottom: 2rem;
+        }
+
+        .step {
+            display: flex;
+            align-items: center;
+            color: #718096;
+            font-size: 0.9rem;
+        }
+
+        .step.active {
+            color: #667eea;
+            font-weight: 600;
+        }
+
+        .step-number {
+            background: #e2e8f0;
+            color: #4a5568;
+            width: 24px;
+            height: 24px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin-right: 0.5rem;
+            font-size: 0.8rem;
+            font-weight: bold;
+        }
+
+        .step.active .step-number {
+            background: #667eea;
+            color: white;
+        }
+
+        .step:not(:last-child)::after {
+            content: '→';
+            margin: 0 1rem;
+            color: #cbd5e0;
+        }
+
+        .form-section {
+            margin-bottom: 2rem;
+        }
+
+        .form-group {
+            margin-bottom: 1rem;
+        }
+
+        label {
+            display: block;
+            margin-bottom: 0.5rem;
+            color: #2d3748;
+            font-weight: 500;
+        }
+
+        input[type="text"],
+        input[type="password"] {
+            width: 100%;
+            padding: 0.75rem;
+            border: 2px solid #e2e8f0;
+            border-radius: 5px;
+            font-size: 1rem;
+            transition: border-color 0.3s ease;
+        }
+
+        input[type="text"]:focus,
+        input[type="password"]:focus {
+            outline: none;
+            border-color: #667eea;
+        }
+
+        .qr-section {
+            text-align: center;
+            padding: 2rem;
+            background: #f7fafc;
+            border-radius: 8px;
+            margin-bottom: 2rem;
+        }
+
+        .qr-code {
+            background: white;
+            padding: 1rem;
+            border-radius: 8px;
+            display: inline-block;
+            margin-bottom: 1rem;
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+        }
+
+        .qr-instructions {
+            color: #4a5568;
+            font-size: 0.9rem;
+            line-height: 1.5;
+        }
+
+        .qr-timer {
+            color: #e53e3e;
+            font-weight: 600;
+            margin-top: 0.5rem;
+        }
+
+        .success-section {
+            text-align: center;
+            padding: 2rem;
+            background: #f0fff4;
+            border: 1px solid #9ae6b4;
+            border-radius: 8px;
+            color: #2f855a;
+        }
+
+        .success-section .icon {
+            font-size: 3rem;
+            margin-bottom: 1rem;
+        }
+
+        .alert {
+            padding: 1rem;
+            margin-bottom: 1rem;
+            border-radius: 5px;
+            font-size: 0.9rem;
+        }
+
+        .alert-error {
+            background: #fed7d7;
+            color: #c53030;
+            border: 1px solid #feb2b2;
+        }
+
+        .alert-info {
+            background: #bee3f8;
+            color: #2b6cb0;
+            border: 1px solid #90cdf4;
+        }
+
+        .hidden {
+            display: none;
+        }
+
+        .loading {
+            display: inline-block;
+            width: 20px;
+            height: 20px;
+            border: 3px solid #f3f3f3;
+            border-top: 3px solid #667eea;
+            border-radius: 50%;
+            animation: spin 1s linear infinite;
+            margin-right: 10px;
+        }
+
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+
+        .form-actions {
+            display: flex;
+            gap: 1rem;
+            justify-content: center;
+        }
+
+        @media (max-width: 768px) {
+            .container {
+                padding: 1rem;
+            }
+            
+            .setup-container {
+                padding: 1rem;
+            }
+            
+            .navbar {
+                padding: 1rem;
+            }
+            
+            .setup-steps {
+                flex-direction: column;
+                align-items: center;
+                gap: 0.5rem;
+            }
+            
+            .step:not(:last-child)::after {
+                content: '↓';
+                margin: 0.5rem 0;
+            }
+            
+            .form-actions {
+                flex-direction: column;
+            }
+        }
+    </style>
+</head>
+<body>
+    <nav class="navbar">
+        <h1>Camera Setup</h1>
+        <div class="nav-links">
+            <a href="/dashboard" class="btn btn-secondary">← Back to Dashboard</a>
+        </div>
+    </nav>
+
+    <div class="container">
+        <div class="setup-container">
+            <div class="setup-header">
+                <h2>Add New Camera</h2>
+                <p>Set up your camera by entering WiFi credentials and scanning the QR code</p>
+            </div>
+
+            <div class="setup-steps">
+                <div class="step active" id="step1">
+                    <div class="step-number">1</div>
+                    Enter Details
+                </div>
+                <div class="step" id="step2">
+                    <div class="step-number">2</div>
+                    Scan QR Code
+                </div>
+                <div class="step" id="step3">
+                    <div class="step-number">3</div>
+                    Complete Setup
+                </div>
+            </div>
+
+            <div id="alert" class="alert hidden"></div>
+
+            <!-- Step 1: Form -->
+            <div id="formSection" class="form-section">
+                <form id="setupForm">
+                    <div class="form-group">
+                        <label for="cameraName">Camera Name</label>
+                        <input type="text" id="cameraName" name="cameraName" required 
+                               placeholder="e.g., Living Room Camera">
+                    </div>
+                    
+                    <div class="form-group">
+                        <label for="wifiSSID">WiFi Network Name (SSID)</label>
+                        <input type="text" id="wifiSSID" name="wifiSSID" required 
+                               placeholder="Your WiFi network name">
+                    </div>
+                    
+                    <div class="form-group">
+                        <label for="wifiPassword">WiFi Password</label>
+                        <input type="password" id="wifiPassword" name="wifiPassword" required 
+                               placeholder="Your WiFi password">
+                    </div>
+                    
+                    <div class="form-actions">
+                        <button type="submit" class="btn btn-primary" id="generateBtn">
+                            <span id="generateLoading" class="loading hidden"></span>
+                            Generate QR Code
+                        </button>
+                    </div>
+                </form>
+            </div>
+
+            <!-- Step 2: QR Code -->
+            <div id="qrSection" class="qr-section hidden">
+                <h3 style="margin-bottom: 1rem;">Scan this QR Code with your AMB82</h3>
+                
+                <div class="qr-code">
+                    <img id="qrCodeImage" src="" alt="QR Code" style="max-width: 300px;">
+                </div>
+                
+                <div class="qr-instructions">
+                    <p><strong>Instructions:</strong></p>
+                    <ol style="text-align: left; max-width: 400px; margin: 1rem auto;">
+                        <li>Power on your camera</li>
+                        <li>Wait for it to enter setup mode</li>
+                        <li>Point the camera at this QR code</li>
+                        <li>The camera will automatically connect to WiFi and start streaming (LED Should Blink)</li>
+                    </ol>
+                </div>
+                
+                <div class="qr-timer">
+                    This QR code expires in: <span id="timeRemaining">30:00</span>
+                </div>
+                
+                <div class="form-actions" style="margin-top: 2rem;">
+                    <button class="btn btn-secondary" onclick="goBackToForm()">← Back</button>
+                    <button class="btn btn-primary" onclick="regenerateQR()">Regenerate</button>
+                </div>
+            </div>
+
+            <!-- Step 3: Success -->
+            <div id="successSection" class="success-section hidden">
+                <div class="icon">✅</div>
+                <h3>Camera Setup Complete!</h3>
+                <p style="margin: 1rem 0;">Your AMB82 camera has been successfully added and is now streaming.</p>
+                
+                <div class="form-actions">
+                    <a href="/dashboard" class="btn btn-primary">View Dashboard</a>
+                    <button class="btn btn-secondary" onclick="setupAnotherCamera()">+ Add Another Camera</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Global variables
+        let currentSessionId = null;
+        let expiryTime = null;
+        let timerInterval = null;
+        let checkInterval = null;
+
+        // DOM elements
+        const formSection = document.getElementById('formSection');
+        const qrSection = document.getElementById('qrSection');
+        const successSection = document.getElementById('successSection');
+        const setupForm = document.getElementById('setupForm');
+        const alert = document.getElementById('alert');
+        const generateBtn = document.getElementById('generateBtn');
+        const generateLoading = document.getElementById('generateLoading');
+        const qrCodeImage = document.getElementById('qrCodeImage');
+        const timeRemaining = document.getElementById('timeRemaining');
+        const step1 = document.getElementById('step1');
+        const step2 = document.getElementById('step2');
+        const step3 = document.getElementById('step3');
+
+        // Initialize
+        document.addEventListener('DOMContentLoaded', () => {
+            const token = localStorage.getItem('token');
+            if (!token) {
+                window.location.href = '/';
+                return;
+            }
+        });
+
+        // Handle form submission
+        setupForm.addEventListener('submit', async (e) => {
+            e.preventDefault();
+            
+            const cameraName = document.getElementById('cameraName').value;
+            const wifiSSID = document.getElementById('wifiSSID').value;
+            const wifiPassword = document.getElementById('wifiPassword').value;
+
+            if (!cameraName || !wifiSSID || !wifiPassword) {
+                showAlert('Please fill in all fields', 'error');
+                return;
+            }
+
+            setLoading(generateBtn, generateLoading, true);
+
+            try {
+                const token = localStorage.getItem('token');
+                const response = await fetch('/api/setup/create', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'Authorization': `Bearer ${token}`
+                    },
+                    body: JSON.stringify({
+                        camera_name: cameraName,
+                        wifi_ssid: wifiSSID,
+                        wifi_password: wifiPassword
+                    })
+                });
+
+                const data = await response.json();
+
+                if (response.ok) {
+                    currentSessionId = data.sessionId;
+                    expiryTime = new Date(data.expiresAt);
+                    qrCodeImage.src = data.qrCode;
+                    
+                    showQRSection();
+                    startTimer();
+                    startChecking();
+                } else {
+                    showAlert(data.error || 'Failed to generate QR code', 'error');
+                }
+            } catch (error) {
+                console.error('Setup error:', error);
+                showAlert('Network error. Please try again.', 'error');
+            } finally {
+                setLoading(generateBtn, generateLoading, false);
+            }
+        });
+
+        // Show QR code section
+        function showQRSection() {
+            formSection.classList.add('hidden');
+            qrSection.classList.remove('hidden');
+            
+            step1.classList.remove('active');
+            step2.classList.add('active');
+        }
+
+        // Show success section
+        function showSuccessSection() {
+            qrSection.classList.add('hidden');
+            successSection.classList.remove('hidden');
+            
+            step2.classList.remove('active');
+            step3.classList.add('active');
+            
+            clearTimers();
+        }
+
+        // Go back to form
+        function goBackToForm() {
+            qrSection.classList.add('hidden');
+            formSection.classList.remove('hidden');
+            
+            step2.classList.remove('active');
+            step1.classList.add('active');
+            
+            clearTimers();
+        }
+
+        // Setup another camera
+        function setupAnotherCamera() {
+            successSection.classList.add('hidden');
+            formSection.classList.remove('hidden');
+            
+            step3.classList.remove('active');
+            step1.classList.add('active');
+            
+            // Reset form
+            setupForm.reset();
+            hideAlert();
+        }
+
+        // Regenerate QR code
+        async function regenerateQR() {
+            const event = new Event('submit');
+            setupForm.dispatchEvent(event);
+        }
+
+        // Start countdown timer
+        function startTimer() {
+            if (timerInterval) clearInterval(timerInterval);
+            
+            timerInterval = setInterval(() => {
+                const now = new Date();
+                const diff = expiryTime - now;
+                
+                if (diff <= 0) {
+                    timeRemaining.textContent = '00:00';
+                    showAlert('QR code has expired. Please generate a new one.', 'error');
+                    clearTimers();
+                    return;
+                }
+                
+                const minutes = Math.floor(diff / 60000);
+                const seconds = Math.floor((diff % 60000) / 1000);
+                timeRemaining.textContent = `${minutes.toString().padStart(2, '0')}:${seconds.toString().padStart(2, '0')}`;
+            }, 1000);
+        }
+
+        // Start checking for camera registration
+        function startChecking() {
+            if (checkInterval) clearInterval(checkInterval);
+            
+            checkInterval = setInterval(async () => {
+                try {
+                    const token = localStorage.getItem('token');
+                    const response = await fetch('/api/cameras', {
+                        headers: {
+                            'Authorization': `Bearer ${token}`
+                        }
+                    });
+                    
+                    if (response.ok) {
+                        const cameras = await response.json();
+                        // Check if any new camera was added in the last minute
+                        const recentCamera = cameras.find(camera => {
+                            const createdAt = new Date(camera.created_at || Date.now());
+                            const timeDiff = Date.now() - createdAt.getTime();
+                            return timeDiff < 60000; // Within last minute
+                        });
+                        
+                        if (recentCamera) {
+                            showSuccessSection();
+                            showAlert('Camera successfully connected!', 'success');
+                        }
+                    }
+                } catch (error) {
+                    console.error('Error checking cameras:', error);
+                }
+            }, 3000); // Check every 3 seconds
+        }
+
+        // Clear all timers
+        function clearTimers() {
+            if (timerInterval) {
+                clearInterval(timerInterval);
+                timerInterval = null;
+            }
+            if (checkInterval) {
+                clearInterval(checkInterval);
+                checkInterval = null;
+            }
+        }
+
+        // Utility functions
+        function showAlert(message, type) {
+            alert.textContent = message;
+            alert.className = `alert alert-${type}`;
+            alert.classList.remove('hidden');
+        }
+
+        function hideAlert() {
+            alert.classList.add('hidden');
+        }
+
+        function setLoading(button, loadingSpinner, isLoading) {
+            if (isLoading) {
+                button.disabled = true;
+                loadingSpinner.classList.remove('hidden');
+            } else {
+                button.disabled = false;
+                loadingSpinner.classList.add('hidden');
+            }
+        }
+
+        // Clean up on page unload
+        window.addEventListener('beforeunload', clearTimers);
+    </script>
+</body>
+</html>

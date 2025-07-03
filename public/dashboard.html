@@ -1,0 +1,698 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Camera Dashboard - RTSP Streamer</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Arial', sans-serif;
+            background: #f5f7fa;
+            min-height: 100vh;
+        }
+
+        .navbar {
+            background: white;
+            padding: 1rem 2rem;
+            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .navbar h1 {
+            color: #667eea;
+            font-size: 1.5rem;
+        }
+
+        .navbar .user-info {
+            display: flex;
+            align-items: center;
+            gap: 1rem;
+        }
+
+        .navbar .username {
+            color: #555;
+            font-weight: 500;
+        }
+
+        .btn {
+            padding: 0.5rem 1rem;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            font-size: 0.9rem;
+            text-decoration: none;
+            display: inline-flex;
+            align-items: center;
+            gap: 0.5rem;
+            transition: all 0.3s ease;
+        }
+
+        .btn-primary {
+            background: #667eea;
+            color: white;
+        }
+
+        .btn-primary:hover {
+            background: #5a67d8;
+        }
+
+        .btn-secondary {
+            background: #e2e8f0;
+            color: #4a5568;
+        }
+
+        .btn-secondary:hover {
+            background: #cbd5e0;
+        }
+
+        .btn-danger {
+            background: #e53e3e;
+            color: white;
+        }
+
+        .btn-danger:hover {
+            background: #c53030;
+        }
+
+        .btn-success {
+            background: #38a169;
+            color: white;
+        }
+
+        .btn-success:hover {
+            background: #2f855a;
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 2rem;
+        }
+
+        .section-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 2rem;
+        }
+
+        .section-header h2 {
+            color: #2d3748;
+        }
+
+        .cameras-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(400px, 1fr));
+            gap: 2rem;
+            margin-bottom: 2rem;
+        }
+
+        .camera-card {
+            background: white;
+            border-radius: 10px;
+            padding: 1.5rem;
+            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
+            transition: transform 0.3s ease;
+        }
+
+        .camera-card:hover {
+            transform: translateY(-2px);
+        }
+
+        .camera-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 1rem;
+        }
+
+        .camera-name {
+            font-size: 1.1rem;
+            font-weight: 600;
+            color: #2d3748;
+        }
+
+        .camera-status {
+            padding: 0.25rem 0.75rem;
+            border-radius: 20px;
+            font-size: 0.8rem;
+            font-weight: 500;
+        }
+
+        .status-online {
+            background: #c6f6d5;
+            color: #2f855a;
+        }
+
+        .status-offline {
+            background: #fed7d7;
+            color: #c53030;
+        }
+
+        .status-streaming {
+            background: #bee3f8;
+            color: #2b6cb0;
+        }
+
+        .video-container {
+            position: relative;
+            width: 100%;
+            height: 240px;
+            background: #000;
+            border-radius: 8px;
+            margin-bottom: 1rem;
+            overflow: hidden;
+        }
+
+        .video-element {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+        }
+
+        .video-placeholder {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            height: 100%;
+            color: #a0aec0;
+            font-size: 3rem;
+        }
+
+        .camera-controls {
+            display: flex;
+            gap: 0.5rem;
+            justify-content: space-between;
+        }
+
+        .camera-info {
+            font-size: 0.9rem;
+            color: #718096;
+            margin-bottom: 1rem;
+        }
+
+        .no-cameras {
+            text-align: center;
+            padding: 3rem;
+            color: #718096;
+        }
+
+        .no-cameras .icon {
+            font-size: 4rem;
+            margin-bottom: 1rem;
+        }
+
+        .alert {
+            padding: 1rem;
+            margin-bottom: 1rem;
+            border-radius: 5px;
+            font-size: 0.9rem;
+        }
+
+        .alert-error {
+            background: #fed7d7;
+            color: #c53030;
+            border: 1px solid #feb2b2;
+        }
+
+        .alert-success {
+            background: #c6f6d5;
+            color: #2f855a;
+            border: 1px solid #9ae6b4;
+        }
+
+        .hidden {
+            display: none;
+        }
+
+        .loading {
+            display: inline-block;
+            width: 16px;
+            height: 16px;
+            border: 2px solid #f3f3f3;
+            border-top: 2px solid #667eea;
+            border-radius: 50%;
+            animation: spin 1s linear infinite;
+        }
+
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+
+        .stream-loading {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            color: white;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 1rem;
+        }
+
+        .stream-loading .loading {
+            width: 40px;
+            height: 40px;
+            border-width: 4px;
+        }
+
+        @media (max-width: 768px) {
+            .cameras-grid {
+                grid-template-columns: 1fr;
+            }
+            
+            .container {
+                padding: 1rem;
+            }
+            
+            .navbar {
+                padding: 1rem;
+            }
+            
+            .section-header {
+                flex-direction: column;
+                gap: 1rem;
+                align-items: stretch;
+            }
+        }
+    </style>
+</head>
+<body>
+    <nav class="navbar">
+        <h1>Camera Dashboard</h1>
+        <div class="user-info">
+            <span class="username" id="username">Loading...</span>
+            <a href="/setup" class="btn btn-primary">+ Add Camera</a>
+            <button class="btn btn-secondary" onclick="logout()">Logout</button>
+        </div>
+    </nav>
+
+    <div class="container">
+        <div id="alert" class="alert hidden"></div>
+
+        <div class="section-header">
+            <h2>Your Cameras</h2>
+            <button class="btn btn-secondary" onclick="refreshCameras()">
+                <span id="refreshLoading" class="loading hidden"></span>
+                Refresh
+            </button>
+        </div>
+
+        <div id="camerasContainer">
+            <div id="loadingCameras" class="no-cameras">
+                <div class="loading" style="width: 40px; height: 40px; margin: 0 auto 1rem;"></div>
+                <p>Loading cameras...</p>
+            </div>
+        </div>
+    </div>
+
+    <script src="/socket.io/socket.io.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/hls.js@latest"></script>
+    <script>
+        // Global variables
+        let socket;
+        let cameras = [];
+        let activeStreams = new Map();
+
+        // DOM elements
+        const usernameElement = document.getElementById('username');
+        const camerasContainer = document.getElementById('camerasContainer');
+        const alert = document.getElementById('alert');
+        const refreshLoading = document.getElementById('refreshLoading');
+        const loadingCameras = document.getElementById('loadingCameras');
+
+        // Initialize the dashboard
+        async function init() {
+            const token = localStorage.getItem('token');
+            const username = localStorage.getItem('username');
+
+            if (!token || !username) {
+                window.location.href = '/';
+                return;
+            }
+
+            usernameElement.textContent = username;
+
+            // Initialize socket connection
+            socket = io();
+
+            socket.on('connect', () => {
+                console.log('Connected to server');
+            });
+
+            socket.on('streamData', (data) => {
+                // Handle incoming stream data
+                console.log('Received stream data');
+            });
+
+            socket.on('disconnect', () => {
+                console.log('Disconnected from server');
+            });
+
+            // Load cameras
+            await loadCameras();
+        }
+
+        // Load cameras from API
+        async function loadCameras() {
+            try {
+                const token = localStorage.getItem('token');
+                const response = await fetch('/api/cameras', {
+                    headers: {
+                        'Authorization': `Bearer ${token}`
+                    }
+                });
+
+                if (response.ok) {
+                    cameras = await response.json();
+                    renderCameras();
+                } else if (response.status === 401) {
+                    // Token expired
+                    logout();
+                } else {
+                    showAlert('Failed to load cameras', 'error');
+                }
+            } catch (error) {
+                console.error('Error loading cameras:', error);
+                showAlert('Network error while loading cameras', 'error');
+            } finally {
+                loadingCameras.style.display = 'none';
+            }
+        }
+
+        // Render cameras in the UI
+        function renderCameras() {
+            if (cameras.length === 0) {
+                camerasContainer.innerHTML = `
+                    <div class="no-cameras">
+                        <div class="icon"></div>
+                        <h3>No cameras added yet</h3>
+                        <p>Get started by adding your first AMB82 camera</p>
+                        <a href="/setup" class="btn btn-primary" style="margin-top: 1rem;">Add Your First Camera</a>
+                    </div>
+                `;
+                return;
+            }
+
+            const camerasHTML = cameras.map(camera => `
+                <div class="camera-card" data-camera-id="${camera.camera_id}">
+                    <div class="camera-header">
+                        <h3 class="camera-name">${camera.name}</h3>
+                        <span class="camera-status ${getStatusClass(camera.status)}">${camera.status}</span>
+                    </div>
+                    
+                    <div class="video-container" id="video-${camera.camera_id}">
+                        <div class="video-placeholder">▶︎</div>
+                    </div>
+                    
+                    <div class="camera-info">
+                        <div>Camera ID: ${camera.camera_id}</div>
+                    </div>
+                    
+                    <div class="camera-controls">
+                        <div>
+                            <button class="btn btn-success" onclick="startStream('${camera.camera_id}', '${camera.rtsp_url}')" 
+                                    id="start-${camera.camera_id}" ${camera.status === 'offline' ? 'disabled' : ''}>
+                                Start Stream
+                            </button>
+                            <button class="btn btn-secondary hidden" onclick="stopStream('${camera.camera_id}')" 
+                                    id="stop-${camera.camera_id}">
+                                Stop Stream
+                            </button>
+                        </div>
+                        <button class="btn btn-danger" onclick="deleteCamera('${camera.camera_id}')">
+                            Delete
+                        </button>
+                    </div>
+                </div>
+            `).join('');
+
+            camerasContainer.innerHTML = `<div class="cameras-grid">${camerasHTML}</div>`;
+        }
+
+        // Start streaming a camera
+        function startStream(cameraId, rtspUrl) {
+            if (!rtspUrl) {
+                showAlert('Camera RTSP URL not available', 'error');
+                return;
+            }
+
+            const videoContainer = document.getElementById(`video-${cameraId}`);
+            const startBtn = document.getElementById(`start-${cameraId}`);
+            const stopBtn = document.getElementById(`stop-${cameraId}`);
+
+            // Show loading state
+            videoContainer.innerHTML = `
+                <div class="stream-loading">
+                    <div class="loading"></div>
+                    <div>Starting stream...</div>
+                </div>
+            `;
+
+            startBtn.disabled = true;
+            startBtn.classList.add('hidden');
+            stopBtn.classList.remove('hidden');
+
+            // Request stream start from server
+            fetch(`/api/stream/start/${cameraId}`, {
+                method: 'POST',
+                headers: {
+                    'Authorization': `Bearer ${localStorage.getItem('token')}`
+                }
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.success && data.hlsUrl) {
+                    // Create video element for HLS streaming
+                    const video = document.createElement('video');
+                    video.className = 'video-element';
+                    video.controls = true;
+                    video.muted = true;
+                    video.autoplay = true;
+                    video.playsInline = true;
+
+                    videoContainer.innerHTML = '';
+                    videoContainer.appendChild(video);
+
+                    // Use HLS.js for better browser compatibility
+                    if (Hls.isSupported()) {
+                        const hls = new Hls({
+                            debug: false,
+                            enableWorker: true,
+                            lowLatencyMode: true,
+                            backBufferLength: 90
+                        });
+                        
+                        hls.loadSource(data.hlsUrl);
+                        hls.attachMedia(video);
+                        
+                        hls.on(Hls.Events.MANIFEST_PARSED, () => {
+                            console.log('HLS manifest loaded, stream ready');
+                            video.play().catch(e => {
+                                console.log('Autoplay prevented:', e);
+                                // Show play button if autoplay is blocked
+                                const playButton = document.createElement('button');
+                                playButton.textContent = '▶️ Click to Play';
+                                playButton.style.cssText = 'position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); padding: 15px 30px; font-size: 16px; background: #667eea; color: white; border: none; border-radius: 8px; cursor: pointer; z-index: 10;';
+                                playButton.onclick = () => {
+                                    video.play();
+                                    playButton.remove();
+                                };
+                                videoContainer.style.position = 'relative';
+                                videoContainer.appendChild(playButton);
+                            });
+                        });
+                        
+                        hls.on(Hls.Events.ERROR, (event, data) => {
+                            console.error('HLS error:', data);
+                            if (data.fatal) {
+                                showRTSPFallback(videoContainer, rtspUrl);
+                            }
+                        });
+                        
+                        activeStreams.set(cameraId, { video, hls, rtspUrl });
+                    } else if (video.canPlayType('application/vnd.apple.mpegurl')) {
+                        // Native HLS support (Safari)
+                        video.src = data.hlsUrl;
+                        video.addEventListener('loadedmetadata', () => {
+                            video.play().catch(e => console.log('Autoplay prevented:', e));
+                        });
+                        activeStreams.set(cameraId, { video, rtspUrl });
+                    } else {
+                        // No HLS support, show fallback
+                        showRTSPFallback(videoContainer, rtspUrl);
+                        return;
+                    }
+                    
+                    updateCameraStatus(cameraId, 'streaming');
+                } else {
+                    showAlert('Failed to start stream: ' + (data.error || 'Unknown error'), 'error');
+                    // Reset buttons on error
+                    startBtn.disabled = false;
+                    startBtn.classList.remove('hidden');
+                    stopBtn.classList.add('hidden');
+                    videoContainer.innerHTML = '<div class="video-placeholder">▶︎</div>';
+                }
+            })
+            .catch(error => {
+                console.error('Stream start error:', error);
+                showAlert('Network error while starting stream', 'error');
+                // Reset buttons on error
+                startBtn.disabled = false;
+                startBtn.classList.remove('hidden');
+                stopBtn.classList.add('hidden');
+                videoContainer.innerHTML = '<div class="video-placeholder">▶︎</div>';
+            });
+
+            // Emit start stream event to socket
+            socket.emit('startStream', { cameraId, rtspUrl });
+        }
+
+        // Stop streaming a camera
+        function stopStream(cameraId) {
+            const videoContainer = document.getElementById(`video-${cameraId}`);
+            const startBtn = document.getElementById(`start-${cameraId}`);
+            const stopBtn = document.getElementById(`stop-${cameraId}`);
+
+            videoContainer.innerHTML = '<div class="video-placeholder">▶︎</div>';
+            
+            startBtn.disabled = false;
+            startBtn.classList.remove('hidden');
+            stopBtn.classList.add('hidden');
+
+            activeStreams.delete(cameraId);
+            updateCameraStatus(cameraId, 'online');
+
+            // Emit stop stream event
+            socket.emit('stopStream', { cameraId });
+        }
+
+        // Update camera status in UI
+        function updateCameraStatus(cameraId, status) {
+            const cameraCard = document.querySelector(`[data-camera-id="${cameraId}"]`);
+            if (cameraCard) {
+                const statusElement = cameraCard.querySelector('.camera-status');
+                statusElement.textContent = status;
+                statusElement.className = `camera-status ${getStatusClass(status)}`;
+            }
+        }
+
+        // Delete a camera
+        async function deleteCamera(cameraId) {
+            if (!confirm('Are you sure you want to delete this camera?')) {
+                return;
+            }
+
+            try {
+                const token = localStorage.getItem('token');
+                const response = await fetch(`/api/cameras/${cameraId}`, {
+                    method: 'DELETE',
+                    headers: {
+                        'Authorization': `Bearer ${token}`
+                    }
+                });
+
+                if (response.ok) {
+                    showAlert('Camera deleted successfully', 'success');
+                    await loadCameras();
+                } else {
+                    const data = await response.json();
+                    showAlert(data.error || 'Failed to delete camera', 'error');
+                }
+            } catch (error) {
+                console.error('Error deleting camera:', error);
+                showAlert('Network error while deleting camera', 'error');
+            }
+        }
+
+        // Refresh cameras
+        async function refreshCameras() {
+            refreshLoading.classList.remove('hidden');
+            await loadCameras();
+            refreshLoading.classList.add('hidden');
+        }
+
+        // Utility functions
+        function getStatusClass(status) {
+            switch (status) {
+                case 'online': return 'status-online';
+                case 'offline': return 'status-offline';
+                case 'streaming': return 'status-streaming';
+                default: return 'status-offline';
+            }
+        }
+
+        function formatDate(dateString) {
+            if (!dateString) return 'Never';
+            return new Date(dateString).toLocaleString();
+        }
+
+        function showAlert(message, type) {
+            alert.textContent = message;
+            alert.className = `alert alert-${type}`;
+            alert.classList.remove('hidden');
+            
+            setTimeout(() => {
+                alert.classList.add('hidden');
+            }, 5000);
+        }
+
+        function logout() {
+            localStorage.removeItem('token');
+            localStorage.removeItem('username');
+            window.location.href = '/';
+        }
+
+        // Show RTSP fallback when HLS fails
+        function showRTSPFallback(videoContainer, rtspUrl) {
+            videoContainer.innerHTML = `
+                <div style="padding: 20px; text-align: center; background: #f8f9fa; border-radius: 8px; height: 100%; display: flex; flex-direction: column; justify-content: center;">
+                    <div style="margin-bottom: 15px; color: #666;">
+                        <strong>Processing Stream...</strong><br>
+                        <small>The stream is being converted for web viewing</small>
+                    </div>
+                    <div style="background: #e9ecef; padding: 10px; border-radius: 4px; margin-bottom: 15px; font-family: monospace; word-break: break-all; font-size: 0.8rem;">
+                        ${rtspUrl}
+                    </div>
+                    <div style="font-size: 0.8rem; color: #666;">
+                        <p>Please wait a moment for the stream to start</p>
+                        <p>If stream doesn't appear, click the refresh button</p>
+                    </div>
+                    <button onclick="copyRTSPUrl('${rtspUrl}')" style="margin-top: 10px; padding: 8px 16px; background: #667eea; color: white; border: none; border-radius: 4px; cursor: pointer; font-size: 0.8rem;">
+                        Copy RTSP URL
+                    </button>
+                </div>
+            `;
+        }
+
+        // Copy RTSP URL to clipboard
+        function copyRTSPUrl(rtspUrl) {
+            navigator.clipboard.writeText(rtspUrl).then(() => {
+                showAlert('RTSP URL copied to clipboard!', 'success');
+            }).catch(err => {
+                // Fallback for older browsers
+                const textArea = document.createElement('textarea');
+                textArea.value = rtspUrl;
+                document.body.appendChild(textArea);
+                textArea.select();
+                document.execCommand('copy');
+                document.body.removeChild(textArea);
+                showAlert('RTSP URL copied to clipboard!', 'success');
+            });
+        }
+
+        // Initialize when page loads
+        document.addEventListener('DOMContentLoaded', init);
+    </script>
+</body>
+</html>
