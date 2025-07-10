@@ -1,476 +1,184 @@
-/* #undef DEFAULT
-#include "VideoStream.h"
-#include "QRCodeScanner.h"
-#include "WiFi.h"
-#include "StreamIO.h"
-#include "AudioStream.h"
-#include "AudioEncoder.h"
-#include "RTSP.h"
-#include <WiFiClient.h>
-#include <HttpClient.h>
+#include "esp_camera.h"
+#include <WiFi.h>
+#include <ArduinoWebsockets.h>
+#include <ESP32QRCodeReader.h>
 #include <ArduinoJson.h>
+#include "soc/soc.h"
+#include "soc/rtc_cntl_reg.h"
 
-#define CHANNEL 0   // Channel for RTSP streaming
-#define CHANNELQR 2 // Channel for QR code scanning
-#define MAX_WIFI_ATTEMPTS 30
-#define QR_SCAN_INTERVAL 500
+// Pin definitions
+#define CAMERA_MODEL_AI_THINKER
+#define PWDN_GPIO_NUM     32
+#define RESET_GPIO_NUM    -1
+#define XCLK_GPIO_NUM      0
+#define SIOD_GPIO_NUM     26
+#define SIOC_GPIO_NUM     27
+#define Y9_GPIO_NUM       35
+#define Y8_GPIO_NUM       34
+#define Y7_GPIO_NUM       39
+#define Y6_GPIO_NUM       36
+#define Y5_GPIO_NUM       21
+#define Y4_GPIO_NUM       19
+#define Y3_GPIO_NUM       18
+#define Y2_GPIO_NUM        5
+#define VSYNC_GPIO_NUM    25
+#define HREF_GPIO_NUM     23
+#define PCLK_GPIO_NUM     22
 
-// RTSP/Video/Audio settings (keep these global)
-VideoSetting configV(800, 600, 30, VIDEO_H264, 0); 
+// WiFi & Server Configuration - IMPORTANT: CHANGE THIS TO YOUR SERVER'S IP ADDRESS
+#define WEBSOCKET_SERVER_HOST "192.168.1.232"
+#define WEBSOCKET_SERVER_PORT 3000
 
-// Audio config: Default (0) usually means standard settings like 16kHz, mono, 16-bit
-AudioSetting configA(0); 
-Audio audio;
-AAC aac;
-RTSP rtsp;
-StreamIO audioStreamer(1, 1); // Streamer for raw audio to AAC encoder
-StreamIO avMixStreamer(2, 1); // RTSP AV mixer: 2 inputs (video, audio), 1 output (RTSP)
+// Globals
+using namespace websockets;
+WebsocketsClient client;
+ESP32QRCodeReader reader{CAMERA_MODEL_AI_THINKER};
 
-// QR Code Scanner related objects
-QRCodeScanner* Scanner = nullptr; 
-String lastProcessedQR = "";
-unsigned long lastScanTime = 0;
-bool wifiConnected = false;
-bool rtspStarted = false; 
-bool cameraRegistered = false; // Flag to ensure we register with server only once per stream start
-
-// --- Camera Setup Variables (from QR code) ---
-String sessionId = "";
-String wifiSSID = "";
-String wifiPassword = "";
-String serverUrl = "";
-String cameraName = "";
-String cameraId = "";
-
-// --- Generate unique camera ID ---
-void generateCameraId() {
-    uint8_t mac[6];
-    WiFi.macAddress(mac);
-    String macAddr = "";
-    for (int i = 0; i < 6; i++) {
-        if (mac[i] < 16) macAddr += "0";
-        macAddr += String(mac[i], HEX);
-    }
-    macAddr.toUpperCase();
-    cameraId = "AMB82_" + macAddr;
-    Serial.println("Generated Camera ID: " + cameraId);
+void onMessageCallback(WebsocketsMessage message) {
+  Serial.print("Got Message: ");
+  Serial.println(message.data());
 }
 
-// --- Parse JSON QR Code (from web app) ---
-bool parseSetupQR(const String& qrString, String& sessionId_out, String& ssid_out, 
-                  String& password_out, String& serverUrl_out, String& cameraName_out) {
-    JsonDocument doc;
-    DeserializationError error = deserializeJson(doc, qrString);
-    
-    if (error) {
-        Serial.println("Failed to parse QR JSON: " + String(error.c_str()));
-        return false;
-    }
-    
-    // Check if all required fields are present
-    if (!doc.containsKey("sessionId") || !doc.containsKey("wifiSSID") || 
-        !doc.containsKey("wifiPassword") || !doc.containsKey("serverUrl") || 
-        !doc.containsKey("cameraName")) {
-        Serial.println("Missing required fields in QR JSON");
-        return false;
-    }
-    
-    sessionId_out = doc["sessionId"].as<String>();
-    ssid_out = doc["wifiSSID"].as<String>();
-    password_out = doc["wifiPassword"].as<String>();
-    serverUrl_out = doc["serverUrl"].as<String>();
-    cameraName_out = doc["cameraName"].as<String>();
-    
-    Serial.println("Parsed QR Code:");
-    Serial.println("Session ID: " + sessionId_out);
-    Serial.println("WiFi SSID: " + ssid_out);
-    Serial.println("Server URL: " + serverUrl_out);
-    Serial.println("Camera Name: " + cameraName_out);
-    
-    return true;
+esp_err_t init_camera_for_streaming() {
+  camera_config_t config;
+  config.ledc_channel = LEDC_CHANNEL_0;
+  config.ledc_timer = LEDC_TIMER_0;
+  config.pin_d0 = Y2_GPIO_NUM;
+  config.pin_d1 = Y3_GPIO_NUM;
+  config.pin_d2 = Y4_GPIO_NUM;
+  config.pin_d3 = Y5_GPIO_NUM;
+  config.pin_d4 = Y6_GPIO_NUM;
+  config.pin_d5 = Y7_GPIO_NUM;
+  config.pin_d6 = Y8_GPIO_NUM;
+  config.pin_d7 = Y9_GPIO_NUM;
+  config.pin_xclk = XCLK_GPIO_NUM;
+  config.pin_pclk = PCLK_GPIO_NUM;
+  config.pin_vsync = VSYNC_GPIO_NUM;
+  config.pin_href = HREF_GPIO_NUM;
+  config.pin_sscb_sda = SIOD_GPIO_NUM;
+  config.pin_sscb_scl = SIOC_GPIO_NUM;
+  config.pin_pwdn = PWDN_GPIO_NUM;
+  config.pin_reset = RESET_GPIO_NUM;
+  config.xclk_freq_hz = 20000000;
+  config.pixel_format = PIXFORMAT_JPEG;
+  config.frame_size = FRAMESIZE_VGA;
+  config.jpeg_quality = 12;
+  config.fb_count = 2;
+  
+  esp_err_t err = esp_camera_init(&config);
+  if (err != ESP_OK) {
+    Serial.printf("Streaming camera init FAIL: 0x%x\n", err);
+    return err;
+  }
+  return ESP_OK;
 }
 
-bool connectToWiFiOptimized(const String& ssid_in, const String& password_in) {
-    Serial.println("Connecting to: " + ssid_in);
-    WiFi.disconnect();
-    delay(100);
-    char ssidBuffer[ssid_in.length() + 1];
-    char passBuffer[password_in.length() + 1];
-    ssid_in.toCharArray(ssidBuffer, sizeof(ssidBuffer));
-    password_in.toCharArray(passBuffer, sizeof(passBuffer));
-    if (password_in.length() > 0) {
-        WiFi.begin(ssidBuffer, passBuffer);
-    } else {
-        WiFi.begin(ssidBuffer);
-    }
-    unsigned long startTime = millis();
-    int attempts = 0;
-    while (WiFi.status() != WL_CONNECTED && attempts < MAX_WIFI_ATTEMPTS) {
-        delay(250);
-        if (attempts % 4 == 0) Serial.print(".");
-        attempts++;
-        if (millis() - startTime > 15000) break;
-    }
-    if (WiFi.status() == WL_CONNECTED) {
-        Serial.println("\n✓ WiFi Connected!");
-        Serial.print("IP: "); Serial.print(WiFi.localIP());
-        Serial.print(" | Signal: "); Serial.print(WiFi.RSSI()); Serial.println(" dBm");
-        return true;
-    } else {
-        Serial.println("\n✗ Connection failed");
-        return false;
-    }
-}
+void onQrCodeTask(void *pvParameters) {
+  struct QRCodeData qrCodeData;
+  bool qrCodeScanned = false;
+  String ssid, pass, sessionId;
 
-// *** HTTP POST Function to Register Camera with Web App Server ***
-void registerCameraWithServer() {
-    if (WiFi.status() != WL_CONNECTED || rtspStarted == false || cameraRegistered) {
-        return;
-    }
-    
-    Serial.println("Registering camera with web application server...");
-    
-    WiFiClient client;
-    HttpClient http(client);
-    
-    // Extract server host and port from serverUrl
-    String host = "";
-    int port = 80;
-    
-    if (serverUrl.startsWith("http://")) {
-        String urlWithoutProtocol = serverUrl.substring(7); // Remove "http://"
-        int colonPos = urlWithoutProtocol.indexOf(':');
-        int slashPos = urlWithoutProtocol.indexOf('/');
-        
-        if (colonPos != -1) {
-            host = urlWithoutProtocol.substring(0, colonPos);
-            if (slashPos != -1) {
-                port = urlWithoutProtocol.substring(colonPos + 1, slashPos).toInt();
-            } else {
-                port = urlWithoutProtocol.substring(colonPos + 1).toInt();
-            }
+  Serial.println("Task started. Point camera at a QR code.");
+
+  // 1. Loop until a valid QR code is scanned
+  while (!qrCodeScanned) {
+    if (reader.receiveQrCode(&qrCodeData, 100)) {
+      if (qrCodeData.valid) {
+        String payload = String((const char *)qrCodeData.payload);
+        Serial.printf("QR Code Payload: %s\n", payload.c_str());
+
+        // New parsing logic for S:<SSID>;P:<Password>;I:<SessionID>
+        int ssid_start = payload.indexOf("S:") + 2;
+        int ssid_end = payload.indexOf(";", ssid_start);
+        ssid = payload.substring(ssid_start, ssid_end);
+
+        int pass_start = payload.indexOf("P:") + 2;
+        int pass_end = payload.indexOf(";", pass_start);
+        pass = payload.substring(pass_start, pass_end);
+
+        int id_start = payload.indexOf("I:") + 2;
+        sessionId = payload.substring(id_start);
+
+        if (ssid.length() > 0 && pass.length() > 0 && sessionId.length() > 0) {
+          qrCodeScanned = true;
+          Serial.println("QR code parsed successfully.");
         } else {
-            if (slashPos != -1) {
-                host = urlWithoutProtocol.substring(0, slashPos);
-            } else {
-                host = urlWithoutProtocol;
-            }
-            port = 80; // Default HTTP port
+          Serial.println("QR code format is invalid. Expecting 'S:<SSID>;P:<Password>;I:<SessionID>'");
         }
-    } else {
-        Serial.println("Invalid server URL format");
-        return;
+      }
     }
-    
-    Serial.println("Connecting to: " + host + ":" + String(port));
-    
-    // Create RTSP URL
-    IPAddress ip = WiFi.localIP();
-    String deviceIP = String(ip[0]) + "." + String(ip[1]) + "." + String(ip[2]) + "." + String(ip[3]);
-    String rtspURL = "rtsp://" + deviceIP + ":554/stream";
-    
-    // Create JSON payload for registration
-    JsonDocument doc;
-    doc["sessionId"] = sessionId;
-    doc["cameraId"] = cameraId;
-    doc["rtspUrl"] = rtspURL;
-    
-    String jsonPayload;
-    serializeJson(doc, jsonPayload);
-    
-    Serial.println("Registration payload: " + jsonPayload);
-    
-    // Make HTTP POST request
-    http.beginRequest();
-    int err = http.post(host.c_str(), port, "/api/camera/register");
-    
-    if (err == 0) {
-        Serial.println("Connected to server, sending headers...");
-        
-        http.sendHeader("Content-Type", "application/json");
-        http.sendHeader("Content-Length", jsonPayload.length());
-        http.endRequest();
-        
-        // Send the JSON payload
-        http.print(jsonPayload);
-        
-        // Read the response
-        int statusCode = http.responseStatusCode();
-        String response = "";
-        
-        // Read response body manually
-        while (http.available()) {
-            response += (char)http.read();
-        }
-        
-        Serial.println("HTTP Response Code: " + String(statusCode));
-        Serial.println("Response: " + response);
-        
-        if (statusCode == 200) {
-            Serial.println("✅ Camera registered successfully with web application!");
-            Serial.println("🎥 Camera is now available in the user's dashboard");
-            Serial.println("📱 Users can now view the live stream at: " + rtspURL);
-            cameraRegistered = true;
-            
-            // Indicate successful registration with LED blinks
-            for (int i = 0; i < 5; i++) {
-                digitalWrite(LED_BUILTIN, HIGH);
-                delay(200);
-                digitalWrite(LED_BUILTIN, LOW);
-                delay(200);
-            }
-        } else {
-            Serial.println("❌ Camera registration failed with HTTP " + String(statusCode));
-            Serial.println("Response: " + response);
-        }
-    } else {
-        Serial.println("❌ Failed to connect to server: " + String(err));
+    vTaskDelay(200 / portTICK_PERIOD_MS);
+  }
+
+  // 2. Stop QR reader
+  Serial.println("QR Scan successful. Shutting down reader.");
+  reader.end();
+  esp_camera_deinit();
+  vTaskDelay(1000 / portTICK_PERIOD_MS); // Crucial delay
+
+  // 3. Connect to WiFi
+  WiFi.begin(ssid.c_str(), pass.c_str());
+  Serial.print("Connecting to WiFi");
+  while (WiFi.status() != WL_CONNECTED) { delay(500); Serial.print("."); }
+  Serial.println("\nWiFi OK");
+
+  // 4. Re-initialize camera for streaming
+  if (init_camera_for_streaming() != ESP_OK) {
+    Serial.println("Failed to init camera for streaming. Restarting...");
+    ESP.restart();
+  }
+  Serial.println("Streaming camera init OK");
+
+  // 5. Connect to WebSocket Server
+  String host = WEBSOCKET_SERVER_HOST;
+  uint16_t port = WEBSOCKET_SERVER_PORT;
+  String path = "/" + sessionId;
+
+  Serial.println("Connecting to WS: " + host + ":" + String(port) + path);
+  client.onMessage(onMessageCallback);
+  for (int i = 1; i <= 50; i++) {
+    if (!client.connect(host, port, path)) { 
+        Serial.println("WS connect failed! Trying Again..."); 
     }
-    
-    http.stop();
+    else {
+        Serial.println("WS OK");
+        break;
+    }
+    delay(200);
+  }
+
+  /*if (!client.connect(host, port, path)) {
+    Serial.print("Failed to connect 50 times! Restarting...");
+    ESP.restart();
+  } */
+
+  // 6. Streaming Loop
+  while (true) {
+    if (client.available()) {
+      client.poll();
+      camera_fb_t *fb = esp_camera_fb_get();
+      if (!fb) { Serial.println("Camera capture failed"); continue; }
+      client.sendBinary((const char *)fb->buf, fb->len);
+      esp_camera_fb_return(fb);
+    } else { Serial.println("WebSocket disconnected. Restarting..."); ESP.restart(); }
+    vTaskDelay(20 / portTICK_PERIOD_MS); // FPS Control
+  }
 }
-
-// --- Process QR Code (modified for JSON format) ---
-void processQRCode(const String& qrData) {
-    if (qrData == lastProcessedQR) return;
-    lastProcessedQR = qrData;
-    Serial.println("New QR detected: " + qrData);
-    
-    String parsedSessionId, parsedSsid, parsedPassword, parsedServerUrl, parsedCameraName;
-    
-    if (parseSetupQR(qrData, parsedSessionId, parsedSsid, parsedPassword, parsedServerUrl, parsedCameraName)) {
-        // Store the parsed values globally
-        sessionId = parsedSessionId;
-        wifiSSID = parsedSsid;
-        wifiPassword = parsedPassword;
-        serverUrl = parsedServerUrl;
-        cameraName = parsedCameraName;
-        
-        Serial.println("Valid setup QR code detected!");
-        
-        if (connectToWiFiOptimized(wifiSSID, wifiPassword)) {
-            wifiConnected = true;
-            
-            // After successful WiFi connection, release the QR scanner
-            if (Scanner) {
-                Serial.println("Attempting to stop QR Scanner and release resources...");
-                Serial.println("Stopping camera channel for QR scanner (CHANNELQR)...");
-                Camera.channelEnd(CHANNELQR); 
-                delay(200); 
-
-                Serial.println("De-initializing camera video subsystem...");
-                Camera.videoDeinit(); 
-                delay(5000); // *** Significant delay (5 seconds) for hardware to fully release ***
-
-                Serial.println("Attempting to delete QR Code Scanner object...");
-                delete Scanner; 
-                Scanner = nullptr; 
-                Serial.println("QR Code Scanner object deleted and camera resources released.");
-            }
-            delay(2000); // Additional delay for system to settle
-            Serial.println("System cleanup after QR scan complete. Ready for RTSP.");
-        } else {
-            lastProcessedQR = ""; 
-            delay(2000);
-        }
-    } else {
-        Serial.println("Invalid setup QR format - expected JSON with sessionId, wifiSSID, wifiPassword, serverUrl, cameraName");
-        lastProcessedQR = ""; 
-    }
-}
-
-// --- RTSP Stream Initialization Function (unchanged from original) ---
-void startRTSPStream() {
-    if (rtspStarted) {
-        Serial.println("RTSP stream already started. Skipping initialization.");
-        return;
-    }
-
-    Serial.println("----- Starting RTSP Stream Setup (VIDEO + AUDIO) -----");
-
-    Serial.println("Configuring Camera Video Channel for RTSP (CHANNEL 0)...");
-    configV.setBitrate(200 * 1024); 
-    Camera.configVideoChannel(CHANNEL, configV); // Use CHANNEL 0 for RTSP
-    Serial.println("Re-initializing Camera video subsystem for RTSP (after config)...");
-    Camera.videoInit();
-    delay(200); 
-    Serial.println("Camera Video Initialized for RTSP.");
-
-    Serial.println("Configuring Audio Peripheral and Encoder...");
-    audio.configAudio(configA); audio.begin();
-    aac.configAudio(configA); aac.begin();
-    Serial.println("Audio Configured.");
-    
-    Serial.println("Setting up StreamIO for Audio (Raw to AAC Encoder)...");
-    audioStreamer.registerInput(audio); audioStreamer.registerOutput(aac);
-    if (audioStreamer.begin() != 0) { 
-        Serial.println("ERROR: StreamIO audio link (Raw->AAC) start failed. Aborting RTSP."); 
-        Camera.channelEnd(CHANNEL);
-        Camera.videoDeinit();
-        return; 
-    }
-    Serial.println("StreamIO Audio Link OK.");
-    
-    Serial.println("Configuring RTSP Server...");
-    rtsp.configVideo(configV); 
-    rtsp.configAudio(configA, CODEC_AAC); 
-    rtsp.begin();
-    Serial.println("RTSP Server Initialized.");
-
-    Serial.println("Starting Camera Channel (CHANNEL 0)...");
-    Camera.channelBegin(CHANNEL); 
-    delay(5000); 
-
-    Serial.println("Setting up StreamIO for Video + Audio Mixing...");
-    auto videoStream = Camera.getStream(CHANNEL); 
-    
-    avMixStreamer.registerInput1(videoStream); 
-    avMixStreamer.registerInput2(aac); 
-    avMixStreamer.registerOutput(rtsp); 
-
-    if (avMixStreamer.begin() != 0) {
-        Serial.println("ERROR: StreamIO AV mix link start failed (Video+Audio). Aborting RTSP.");
-        Camera.channelEnd(CHANNEL);
-        Camera.videoDeinit();
-        audioStreamer.end(); 
-        rtsp.end();          
-        aac.end();           
-        audio.end();         
-        return;
-    }
-    Serial.println("StreamIO AV Mix Link OK (Video+Audio)."); 
-    
-    delay(1000); 
-
-    Serial.println("------------------------------");
-    Serial.println("- Summary of Streaming -");
-    Serial.println("------------------------------");
-    Camera.printInfo();
-    IPAddress ip = WiFi.localIP();
-    Serial.println("- RTSP -");
-    Serial.print("rtsp://");
-    Serial.print(ip);
-    Serial.print(":");
-    rtsp.printInfo(); 
-    Serial.println("- Audio -"); 
-    audio.printInfo();           
-
-    rtspStarted = true;
-    Serial.println("----- RTSP Stream Setup Complete (VIDEO + AUDIO). -----");
-}
-
-// --- Main Setup and Loop ---
 
 void setup() {
-    Serial.begin(115200);
-    Serial.println("=== AMB82 Camera Web App Integration ===");
-    Serial.println("System Booting...");
+  WRITE_PERI_REG(RTC_CNTL_BROWN_OUT_REG, 0);
+  Serial.begin(115200);
+  Serial.setDebugOutput(true);
 
-    // Generate unique camera ID
-    generateCameraId();
+  reader.setup();
+  Serial.println("Setup QRCode Reader");
 
-    // Configure and initialize Camera for CHANNELQR (Channel 2) for QR scanning initially
-    Camera.configVideoChannel(CHANNELQR, configV); 
-    Camera.videoInit(); 
+  reader.beginOnCore(1);
+  Serial.println("Begin on Core 1");
 
-    Scanner = new QRCodeScanner();
-    if (Scanner) {
-        Scanner->StartScanning();
-        Serial.println("QR Code Scanner Initialized and Started.");
-    } else {
-        Serial.println("ERROR: Failed to allocate QRCodeScanner! Halting.");
-        while(1); 
-    }
-    
-    Serial.println("Please scan the QR code from the web application setup page...");
-    Serial.println("Expected format: JSON with sessionId, wifiSSID, wifiPassword, serverUrl, cameraName");
+  xTaskCreate(onQrCodeTask, "onQrCodeTask", 8192, NULL, 5, NULL);
 }
 
 void loop() {
-    if (!wifiConnected) {
-        // --- QR Scanning Loop ---
-        if (Scanner) { 
-            unsigned long currentTime = millis();
-            if (currentTime - lastScanTime >= QR_SCAN_INTERVAL) {
-                Scanner->GetResultString();
-                
-                if (Scanner->ResultString != nullptr && strlen(Scanner->ResultString) > 0) {
-                    processQRCode(String(Scanner->ResultString));
-                }
-                
-                lastScanTime = currentTime;
-            }
-        }
-        delay(50); 
-        
-    } else { // WiFi is connected
-        if (!rtspStarted) {
-            startRTSPStream();
-            // *** Register camera with web application server after stream starts ***
-            registerCameraWithServer(); 
-        }
-
-        // --- WiFi and RTSP Monitoring Loop ---
-        static unsigned long lastCheck = 0;
-        if (millis() - lastCheck > 10000) { // Check every 10 seconds
-            if (WiFi.status() != WL_CONNECTED) {
-                Serial.println("WiFi disconnected! Stopping RTSP and restarting QR scanner...");
-                
-                // Stop RTSP components in reverse order of setup
-                avMixStreamer.end();        
-                Camera.channelEnd(CHANNEL); 
-                rtsp.end();                 
-                audioStreamer.end();
-                aac.end();
-                audio.end();
-                delay(200); 
-
-                Serial.println("De-initializing camera video subsystem before re-starting for QR scan...");
-                Camera.videoDeinit(); 
-                delay(5000); 
-
-                Camera.configVideoChannel(CHANNELQR, configV); // Re-initialize QR channel (CHANNELQR)
-                Camera.videoInit();                          
-                delay(1000); 
-
-                rtspStarted = false;        
-                wifiConnected = false;      
-                lastProcessedQR = "";       
-                cameraRegistered = false; // Reset flag so camera is registered again on reconnect
-
-                // Clear stored values
-                sessionId = "";
-                wifiSSID = "";
-                wifiPassword = "";
-                serverUrl = "";
-                cameraName = "";
-
-                // Re-allocate and restart QR scanner for re-connection
-                if (!Scanner) { 
-                    Serial.println("Re-allocating QR Code Scanner...");
-                    Scanner = new QRCodeScanner();
-                    if (Scanner) {
-                        Scanner->StartScanning();
-                        Serial.println("QR Code WiFi Scanner re-started.");
-                    } else {
-                        Serial.println("ERROR: Failed to re-allocate QRCodeScanner! Cannot re-scan.");
-                    }
-                }
-            } else {
-                Serial.print("WiFi OK - IP: ");
-                Serial.println(WiFi.localIP());
-                
-                // Periodic status update (optional)
-                if (cameraRegistered) {
-                    Serial.println("Camera Status: Registered and Streaming");
-                    IPAddress ip = WiFi.localIP();
-                    String ipStr = String(ip[0]) + "." + String(ip[1]) + "." + String(ip[2]) + "." + String(ip[3]);
-                    Serial.println("RTSP URL: rtsp://" + ipStr + ":554/stream");
-                }
-            }
-            lastCheck = millis();
-        }
-        delay(1000); 
-    }
+  vTaskDelay(1000 / portTICK_PERIOD_MS);
 }
-*/
