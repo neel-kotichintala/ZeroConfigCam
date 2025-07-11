@@ -1,10 +1,10 @@
-# RTSP Camera Streaming Web Application
+# MPEG Camera Streaming Web Application
 
-A complete web application for streaming RTSP video from AMB82 cameras with QR code setup, user authentication, and multi-camera support.
+A complete web application for streaming MPEG video from cameras with QR code setup, user authentication, and multi-camera support.
 
 ## Features
 
-- **Live RTSP Streaming**: Real-time video streaming from multiple AMB82 cameras
+- **Live MPEG Streaming**: Real-time video streaming from multiple cameras
 - **QR Code Setup**: Easy camera configuration using QR codes
 - **User Authentication**: Secure login/registration system
 - **Multi-Camera Support**: Manage multiple cameras per user account
