@@ -27,7 +27,60 @@
         .container { max-width: 1200px; margin: 0 auto; padding: 2rem; }
         .section-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 2rem; }
         .section-header h2 { color: #2d3748; }
-        .cameras-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(640px, 1fr)); gap: 2rem; }
+        .view-controls { display: flex; gap: 0.5rem; }
+        .view-controls .btn {
+            background: #f0f2f5; /* A cleaner, lighter gray */
+            border: 2px solid transparent;
+            padding: 4px; /* Reduced padding so the icon fills the button */
+            border-radius: 8px;
+            line-height: 0; /* Collapse button height to the icon */
+        }
+        .view-controls .btn:hover {
+            border-color: #d0d8e0; /* Subtle hover effect */
+        }
+        .view-controls .btn.active {
+            border-color: #4299e1; /* A clear blue indicator for the active view */
+            background: #e0eaf5;
+        }
+        .view-controls .btn img {
+            height: 32px; /* Larger icons */
+            width: 32px;
+            mix-blend-mode: darken; /* Magically removes the white background */
+        }
+                .cameras-grid {
+            display: grid;
+            gap: 2rem;
+            /* Responsive Grid: Starts with 1 column, goes up to 4 */
+            grid-template-columns: repeat(auto-fit, minmax(320px, 1fr));
+        }
+
+        /* List View */
+        .cameras-grid.list-view {
+            grid-template-columns: 1fr; /* Force a single column */
+        }
+        .cameras-grid.list-view .camera-card {
+            max-width: 1200px; /* Match the full-view for a consistent large format */
+            margin: 0 auto; /* Center the large card */
+        }
+
+        /* Full View (Carousel) */
+        .cameras-grid.full-view {
+            position: relative;
+            display: block; /* Override grid display */
+        }
+        .cameras-grid.full-view .camera-card {
+            display: none; /* Hide all cards by default */
+        }
+        .cameras-grid.full-view .camera-card.active {
+            display: block; /* Show only the active one */
+            width: 100%;
+            max-width: 1200px; /* Limit max size for very large screens */
+            margin: 0 auto;
+        }
+        .carousel-nav { position: absolute; top: 50%; transform: translateY(-50%); background: rgba(0,0,0,0.5); color: white; border: none; font-size: 2rem; padding: 0.5rem 1rem; cursor: pointer; z-index: 10; border-radius: 50%; user-select: none; }
+        .carousel-nav.prev { left: 1rem; }
+        .carousel-nav.next { right: 1rem; }
+        .carousel-nav:hover { background: rgba(0,0,0,0.8); }
         .camera-card { background: white; border-radius: 10px; padding: 1.5rem; box-shadow: 0 4px 15px rgba(0,0,0,0.1); }
         .camera-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 1rem; }
         .camera-name { font-size: 1.1rem; font-weight: 600; }
@@ -38,6 +91,24 @@
         .video-container { position: relative; width: 100%; padding-top: 75%; /* 4:3 Aspect Ratio */ background: #000; border-radius: 8px; overflow: hidden; }
         .video-element { position: absolute; top: 0; left: 0; width: 100%; height: 100%; object-fit: cover; }
         .no-cameras { text-align: center; padding: 3rem; color: #718096; grid-column: 1 / -1; }
+
+        /* Media Queries for True Responsiveness */
+        @media (max-width: 768px) {
+            /* On smaller screens, force List View for Grid mode */
+            .cameras-grid:not(.full-view) {
+                grid-template-columns: 1fr;
+            }
+            .cameras-grid.list-view .camera-card, .cameras-grid .camera-card {
+                flex-direction: column;
+            }
+        }
+
+        @media (min-width: 1600px) {
+            /* Limit columns to 4 on very wide screens */
+            .cameras-grid:not(.list-view):not(.full-view) {
+                grid-template-columns: repeat(4, 1fr);
+            }
+        }
     </style>
 </head>
 <body>
@@ -53,6 +124,11 @@
     <div class="container">
         <div class="section-header">
             <h2>Your Cameras</h2>
+            <div class="view-controls">
+                <button id="view-grid" class="btn active"><img src="/icons/grid-view.png" alt="Grid View"></button>
+                <button id="view-list" class="btn"><img src="/icons/list-view.png" alt="List View"></button>
+                <button id="view-full" class="btn"><img src="/icons/full-view.png" alt="Full View"></button>
+            </div>
         </div>
         <div id="camerasContainer" class="cameras-grid">
             <div id="noCamerasMessage" class="no-cameras">
@@ -194,6 +270,83 @@
                     nameEl.textContent = data.name;
                 }
             }
+        });
+
+        // --- View Switching Logic ---
+        const viewGridBtn = document.getElementById('view-grid');
+        const viewListBtn = document.getElementById('view-list');
+        const viewFullBtn = document.getElementById('view-full');
+        let currentView = 'grid'; // default view
+        let carouselIndex = 0;
+
+        function setView(view) {
+            camerasContainer.classList.remove('grid-view', 'list-view', 'full-view');
+            document.querySelectorAll('.view-controls .btn').forEach(b => b.classList.remove('active'));
+            document.getElementById(`view-${view}`).classList.add('active');
+
+            if (view === 'grid') {
+                camerasContainer.classList.add('grid-view');
+            } else if (view === 'list') {
+                camerasContainer.classList.add('list-view');
+            } else if (view === 'full') {
+                camerasContainer.classList.add('full-view');
+                setupCarousel();
+            }
+
+            if (view !== 'full') {
+                removeCarousel();
+            }
+
+            currentView = view;
+            localStorage.setItem('dashboardView', view);
+        }
+
+        function setupCarousel() {
+            const cards = camerasContainer.querySelectorAll('.camera-card');
+            if (cards.length === 0) return;
+
+            // Show the first card
+            cards.forEach(c => c.classList.remove('active'));
+            cards[carouselIndex].classList.add('active');
+
+            // Add nav buttons if they don't exist
+            if (!document.querySelector('.carousel-nav')) {
+                const prevBtn = document.createElement('button');
+                prevBtn.className = 'carousel-nav prev';
+                prevBtn.innerHTML = '&#10094;';
+                prevBtn.onclick = () => navigateCarousel(-1);
+
+                const nextBtn = document.createElement('button');
+                nextBtn.className = 'carousel-nav next';
+                nextBtn.innerHTML = '&#10095;';
+                nextBtn.onclick = () => navigateCarousel(1);
+
+                camerasContainer.appendChild(prevBtn);
+                camerasContainer.appendChild(nextBtn);
+            }
+        }
+
+        function removeCarousel() {
+            document.querySelectorAll('.carousel-nav').forEach(nav => nav.remove());
+            camerasContainer.querySelectorAll('.camera-card').forEach(c => c.style.display = ''); // Reset display property
+        }
+
+        function navigateCarousel(direction) {
+            const cards = camerasContainer.querySelectorAll('.camera-card');
+            if (cards.length === 0) return;
+            cards[carouselIndex].classList.remove('active');
+            carouselIndex = (carouselIndex + direction + cards.length) % cards.length;
+            cards[carouselIndex].classList.add('active');
+        }
+
+        viewGridBtn.addEventListener('click', () => setView('grid'));
+        viewListBtn.addEventListener('click', () => setView('list'));
+        viewFullBtn.addEventListener('click', () => setView('full'));
+
+        // On page load, apply the saved view
+        document.addEventListener('DOMContentLoaded', () => {
+            const savedView = localStorage.getItem('dashboardView') || 'grid';
+            setView(savedView);
         });
 
         socket.on('stream', (data) => {
