@@ -15,8 +15,8 @@ A complete web application for streaming MPEG video from cameras with QR code se
 
 ```
 ┌─────────────────┐    ┌─────────────────┐    ┌─────────────────┐
-│   Web Browser   │◄──►│   Node.js API   │◄──►│  SQLite Database│
-│   (Dashboard)   │    │   (Express)     │    │   (Users/Cams)  │
+│   Web Browser   │◄──►│   Node.js API   │◄──►│ SQLite Database │
+│   (Dashboard)   │    │   (Express)     │    │  (Users/Cams)   │
 └─────────────────┘    └─────────────────┘    └─────────────────┘
          ▲                       ▲
          │ Socket.IO             │ HTTP POST
