@@ -76,6 +76,26 @@ body.dark-mode input[type="password"] {
     color: #e2e8f0;
 }
 
+/* Placeholder text */
+body.dark-mode input::placeholder {
+    color: #a0aec0; /* lighter gray for readability */
+}
+
+/* QR section fixes */
+body.dark-mode .qr-section {
+    background-color: #2d3748;
+}
+body.dark-mode .qr-code {
+    background-color: #4a5568;
+}
+
+body.dark-mode input[type="text"],
+body.dark-mode input[type="password"] {
+    background-color: #4a5568;
+    border-color: #718096;
+    color: #e2e8f0;
+}
+
 body.dark-mode input[type="text"]:focus,
 body.dark-mode input[type="password"]:focus {
     border-color: #9f7aea;

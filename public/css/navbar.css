@@ -1,3 +1,8 @@
+/* Global Light Mode Text Color */
+body {
+    color: #2d3748;
+}
+
 /* Shared Navbar Styles */
 .navbar {
     background: white;
@@ -9,7 +14,7 @@
 }
 
 .navbar h1 {
-    color: #667eea;
+    color: #2d3748;
     font-size: 1.5rem;
 }
 
@@ -37,7 +42,7 @@
 }
 
 .navbar .username {
-    color: #555;
+    color: #2d3748;
     font-weight: 500;
     font-size: 1rem;
     margin-right: 1.5rem; /* Add spacing to the right */
@@ -59,6 +64,7 @@
     background: none;
     box-sizing: border-box;
     transition: background 0.2s, color 0.2s;
+    color: #2d3748;
     position: relative;
     overflow: hidden;
     font-weight: 500;
@@ -106,14 +112,7 @@
     font-weight: 600;
 }
 
-.btn-logout {
-    /* Inherits from .btn, just change color */
-    color: #e53e3e;
-}
 
-.btn-logout:hover {
-    color: #c53030;
-}
 
 
 
