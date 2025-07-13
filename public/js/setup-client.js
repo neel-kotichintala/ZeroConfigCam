@@ -247,3 +247,11 @@ function setLoading(button, loadingSpinner, isLoading) {
 
 // Clean up on page unload
 window.addEventListener('beforeunload', clearTimers);
+
+// Logout handler - shared with dashboard
+function logout() {
+    localStorage.removeItem('token');
+    localStorage.removeItem('username');
+    window.location.href = '/';
+}
+

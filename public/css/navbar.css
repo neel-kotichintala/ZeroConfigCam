@@ -1,0 +1,130 @@
+/* Shared Navbar Styles */
+.navbar {
+    background: white;
+    padding: 1rem 2rem;
+    box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+
+.navbar h1 {
+    color: #667eea;
+    font-size: 1.5rem;
+}
+
+.logo-container {
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+}
+
+.logo {
+    height: 60px;
+    width: 60px;
+}
+
+.logo-link {
+    text-decoration: none;
+    color: inherit;
+}
+
+.navbar .user-info {
+    display: flex;
+    align-items: center;
+    gap: 0; /* rely on borders for separation */
+    margin-left: auto;
+}
+
+.navbar .username {
+    color: #555;
+    font-weight: 500;
+    font-size: 1rem;
+    margin-right: 1.5rem; /* Add spacing to the right */
+}
+
+.navbar .user-info .btn,
+.user-info .theme-toggle-btn {
+    flex: 1 1 0;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    min-width: 0;
+    min-height: 58px;
+    padding: 0.75rem 1.5rem;
+    border: none;
+    cursor: pointer;
+    text-decoration: none;
+    background: none;
+    box-sizing: border-box;
+    transition: background 0.2s, color 0.2s;
+    position: relative;
+    overflow: hidden;
+    font-weight: 500;
+    border-radius: 0; /* Remove radius for a boxed look */
+    border-left: 1px solid #e2e8f0;
+}
+
+.user-info .btn i {
+    font-size: 1.5rem; /* Icon size */
+    margin-bottom: 0.25rem;
+    display: block;
+}
+
+.user-info .btn span {
+    font-size: 0.8rem; /* Text size */
+}
+
+.user-info .btn::after,
+.user-info .theme-toggle-btn::after {
+    content: '';
+    position: absolute;
+    width: 100%;
+    height: 3px;
+    bottom: 0;
+    left: 0;
+    background-color: #667eea;
+    transform: scaleX(0);
+    transform-origin: bottom;
+    transition: transform 0.3s ease-in-out;
+}
+
+.user-info .btn:hover,
+.user-info .btn:focus {
+    color: #2d3748;
+}
+
+.user-info .btn:hover::after,
+.user-info .btn.active::after,
+.user-info .theme-toggle-btn:hover::after {
+    transform: scaleX(1);
+}
+
+.user-info .btn.active {
+    color: #667eea;
+    font-weight: 600;
+}
+
+.btn-logout {
+    /* Inherits from .btn, just change color */
+    color: #e53e3e;
+}
+
+.btn-logout:hover {
+    color: #c53030;
+}
+
+
+
+.theme-toggle-btn i.animate-spin {
+    transform: rotate(360deg);
+    transition: transform 0.5s ease-in-out;
+}
+
+.theme-toggle-btn:hover,
+.theme-toggle-btn:focus {
+    background: transparent !important;
+    box-shadow: none !important;
+    outline: none !important;
+}

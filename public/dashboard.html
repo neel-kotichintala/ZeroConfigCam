@@ -4,16 +4,20 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Camera Dashboard</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@400;500;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="/css/navbar.css">
+    <link rel="stylesheet" href="/css/dark-mode.css">
+    <link href='https://unpkg.com/boxicons@2.1.4/css/boxicons.min.css' rel='stylesheet'>
     <style>
         * { margin: 0; padding: 0; box-sizing: border-box; }
-        body { font-family: 'Arial', sans-serif; background: #f5f7fa; min-height: 100vh; }
-        .navbar { background: white; padding: 1rem 2rem; box-shadow: 0 2px 10px rgba(0,0,0,0.1); display: flex; justify-content: space-between; align-items: center; }
-        .navbar h1 { color: #667eea; font-size: 1.5rem; }
-        .navbar .user-info { display: flex; align-items: center; gap: 1rem; }
-        .navbar .username { color: #555; font-weight: 500; }
-        .btn { padding: 0.5rem 1rem; border: none; border-radius: 5px; cursor: pointer; font-size: 0.9rem; text-decoration: none; display: inline-flex; align-items: center; gap: 0.5rem; transition: all 0.3s ease; }
+        body { font-family: 'Roboto', sans-serif; background: #f5f7fa; min-height: 100vh; }
+        .btn { padding: 0.5rem 1rem; border: none; border-radius: 5px; cursor: pointer; text-decoration: none; display: inline-flex; align-items: center; gap: 0.5rem; transition: all 0.3s ease; font-family: 'Roboto', sans-serif;}
         .btn-primary { background: #667eea; color: white; }
+        .btn-primary:hover { background: #5a67d8; }
         .btn-secondary { background: #e2e8f0; color: #4a5568; }
+        .btn-secondary:hover { background: #cbd5e0; }
         .btn-danger { background: #e53e3e; color: white; }
         .btn-danger:hover { background: #c53030; }
         .btn-sm { padding: 0.25rem 0.6rem; font-size: 0.8rem; }
@@ -113,11 +117,27 @@
 </head>
 <body>
     <nav class="navbar">
-        <h1>Camera Dashboard</h1>
+        <div class="logo-container">
+            <img src="/icons/Logo.png" alt="SimpleVision Logo" class="logo">
+            <a href="/dashboard" class="logo-link"><h1>SomethingVision</h1></a>
+        </div>
         <div class="user-info">
             <span class="username" id="username"></span>
-            <a href="/setup" class="btn btn-primary">+Add Camera</a>
-            <button class="btn btn-secondary" onclick="logout()">Logout</button>
+            <a href="/dashboard" class="btn active">
+                <i class='bx bxs-dashboard'></i>
+                <span>Dashboard</span>
+            </a>
+            <a href="/setup" class="btn">
+                <i class='bx bxs-cog'></i>
+                <span>Setup</span>
+            </a>
+            <button class="btn btn-logout" onclick="logout()">
+                <i class='bx bx-log-out'></i>
+                <span>Logout</span>
+            </button>
+            <button id="theme-toggle" class="btn theme-toggle-btn">
+                <!-- Icon will be set by JS -->
+            </button>
         </div>
     </nav>
 
@@ -151,5 +171,6 @@
 
     <script src="/socket.io/socket.io.js"></script>
     <script src="/js/dashboard-client.js" defer></script>
+    <script src="/js/theme-toggle.js" defer></script>
 </body>
 </html>

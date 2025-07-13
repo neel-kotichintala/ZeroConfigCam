@@ -1,0 +1,99 @@
+/* Dark Mode Theme */
+body.dark-mode {
+    background-color: #1a202c;
+    color: #e2e8f0;
+}
+
+/* Navbar */
+body.dark-mode .navbar {
+    background-color: #2d3748;
+    box-shadow: 0 2px 10px rgba(0, 0, 0, 0.4);
+}
+
+
+
+
+
+body.dark-mode .navbar h1,
+body.dark-mode .navbar .username,
+body.dark-mode .user-info .btn {
+    color: #e2e8f0;
+    border-left-color: #4a5568; /* Adjust separator color for dark mode */
+}
+
+body.dark-mode .theme-toggle-btn {
+    color: #cbd5e0;
+    border-left: 1px solid #4a5568; /* Ensure separator is correctly styled */
+}
+
+body.dark-mode .user-info .btn:hover,
+body.dark-mode .user-info .btn:focus {
+    color: #a0aec0;
+}
+
+body.dark-mode .user-info .btn.active {
+    color: #9f7aea;
+}
+
+body.dark-mode .user-info .btn::after {
+    background-color: #9f7aea;
+}
+
+body.dark-mode .btn-logout {
+    color: #e53e3e;
+}
+
+body.dark-mode .btn-logout:hover {
+    color: #fc8181;
+}
+
+/* Page-specific overrides */
+body.dark-mode .container .section-header h2,
+body.dark-mode .setup-header h2,
+body.dark-mode label {
+    color: #e2e8f0;
+}
+
+body.dark-mode .camera-card,
+body.dark-mode .setup-container {
+    background-color: #2d3748;
+    box-shadow: 0 4px 15px rgba(0, 0, 0, 0.2);
+}
+
+body.dark-mode .camera-name {
+    color: #e2e8f0;
+}
+
+body.dark-mode .setup-header p,
+body.dark-mode .qr-instructions {
+    color: #a0aec0;
+}
+
+body.dark-mode input[type="text"],
+body.dark-mode input[type="password"] {
+    background-color: #4a5568;
+    border-color: #718096;
+    color: #e2e8f0;
+}
+
+body.dark-mode input[type="text"]:focus,
+body.dark-mode input[type="password"]:focus {
+    border-color: #9f7aea;
+}
+
+body.dark-mode .btn-secondary {
+    background: #4a5568;
+    color: #e2e8f0;
+}
+
+body.dark-mode .btn-secondary:hover {
+    background: #718096;
+}
+
+body.dark-mode .theme-toggle-btn {
+    color: #e2e8f0;
+}
+
+body.dark-mode .theme-toggle-btn:hover {
+    background-color: #4a5568;
+}
