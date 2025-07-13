@@ -3,6 +3,144 @@ body {
     color: #2d3748;
 }
 
+/* Mobile menu toggle button */
+.nav-toggle-btn {
+    display: none;
+    background: none;
+    border: none;
+    font-size: 2rem;
+    color: #2d3748;
+    cursor: pointer;
+}
+
+/* Responsive Navbar */
+@media (max-width: 768px) {
+    /* --- dropdown button style overrides --- */
+    .user-info.open .btn { border-left: none; }
+    .user-info.open .btn + .btn { border-top: 1px solid #e2e8f0; }
+    .user-info .btn {
+        width: 100%;
+        white-space: nowrap;
+        border-bottom: 1px solid #e2e8f0;
+
+        flex-direction: row !important;
+
+        justify-content: flex-start;
+        flex-direction: row;
+        align-items: center;
+        gap: 0.5rem;
+        background: white;
+        border: none;
+        padding: 0.6rem 1rem;
+        font-size: 0.9rem;
+    }
+    .user-info .btn i { font-size: 1.25rem; }
+    .toggle-label { font-size: 0.9rem; white-space: nowrap; }
+
+@media (min-width: 769px) {
+    .navbar .user-info .btn {
+        flex: 0 0 140px;
+        padding: 0.75rem 0;
+    }
+    .navbar .user-info .btn span {
+        white-space: nowrap;
+        font-size: 0.8rem;
+        display: block;
+    }
+    .toggle-label { display: none; }
+}
+
+@media (max-width: 768px) {
+    .user-info.open {
+        padding: 0;
+    }
+    .user-info.open .btn {
+        border-left: none;
+    }
+    .user-info.open .btn + .btn {
+        border-top: 1px solid #e2e8f0;
+    }
+    .user-info .username {
+        display: block;
+        width: 100%;
+        padding: 0.75rem 0;
+        text-align: center;
+        font-weight: 600;
+        border-bottom: 1px solid #e2e8f0;
+        margin: 0;
+        box-sizing: border-box;
+    }
+}
+
+    .user-info .btn:last-child { border-bottom:none; }
+    .user-info .btn:hover {
+        background: #f7fafc;
+    }
+
+    /* shrink logo/title */
+    .logo { height: 28px; width: 28px; }
+    .logo-container h1 { font-size: 1.1rem; }
+
+    /* show hamburger */
+    .nav-toggle-btn { display: block; }
+
+    /* hide links by default */
+    .user-info { display: none !important; }
+    .user-info.open {
+        overflow: hidden;
+        padding: 0;
+        display: flex !important;
+        border-top: none;
+        border-bottom: none;
+        flex-direction: column;
+        position: absolute;
+        top: 60px;
+        right: 1rem;
+        background: #ffffff; /* solid */
+        border-radius: 10px;
+        box-shadow: 0 6px 18px rgba(0,0,0,0.2);
+        width: 250px;
+        padding: 0; /* remove side padding so divider flush */
+        padding-top: 0;
+        z-index: 1000;
+    }
+
+    /* username at top */
+    .user-info .username {
+        display: flex;
+        width: 100%;
+        align-self: stretch;
+        padding: 0.75rem 0;
+        margin: 0;
+        box-sizing: border-box;
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        padding: 0.75rem 1rem;
+        box-sizing: border-box;
+        border-bottom: 1px solid #e2e8f0;
+        text-align: center;
+        align-self: center;
+        width: 100%;
+        display: block;
+        font-weight: 600;
+        font-size: 1rem;
+        color: #2d3748;
+        padding: 0.6rem 1rem;
+        text-align: center;
+        border-bottom: 1px solid #e2e8f0;
+    }
+
+    .navbar { padding: 0.75rem 1rem; }
+    .logo-container { flex: 1; }
+    .nav-toggle-btn { margin-left: auto; }
+    .navbar .user-info .btn,
+    .user-info .theme-toggle-btn {
+        min-height: 40px;
+        padding: 0.5rem 1rem;
+    }
+}
+
 /* Shared Navbar Styles */
 .navbar {
     background: white;
@@ -45,7 +183,7 @@ body {
     color: #2d3748;
     font-weight: 500;
     font-size: 1rem;
-    margin-right: 1.5rem; /* Add spacing to the right */
+    margin-right: 1.5rem; /* Dark mode specific overrides */
 }
 
 .navbar .user-info .btn,
@@ -70,6 +208,7 @@ body {
     font-weight: 500;
     border-radius: 0; /* Remove radius for a boxed look */
     border-left: 1px solid #e2e8f0;
+    box-sizing: border-box;
 }
 
 .user-info .btn i {
@@ -112,8 +251,10 @@ body {
     font-weight: 600;
 }
 
-
-
+.user-info .btn:last-child {
+    color: #667eea;
+    font-weight: 600;
+}
 
 
 .theme-toggle-btn i.animate-spin {

@@ -27,6 +27,10 @@ const setupContainer = document.querySelector('.setup-container');
 let socket;
 
 document.addEventListener('DOMContentLoaded', () => {
+    const usernameSpan = document.getElementById('username');
+    if (usernameSpan) {
+        usernameSpan.textContent = localStorage.getItem('username') || 'User';
+    }
     const token = localStorage.getItem('token');
     if (!token) {
         window.location.href = '/';

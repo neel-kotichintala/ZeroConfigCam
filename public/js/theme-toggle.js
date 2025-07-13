@@ -5,18 +5,20 @@ document.addEventListener('DOMContentLoaded', () => {
 
     function updateIcon(isDarkMode) {
         const icon = document.createElement('i');
-        const textPlaceholder = document.createElement('span');
-        textPlaceholder.innerHTML = '&nbsp;'; // Non-breaking space to ensure height
+        const label = document.createElement('span');
+        label.className = 'toggle-label';
 
         if (isDarkMode) {
             icon.className = sunIconClass;
+            label.textContent = ' Light Mode';
         } else {
             icon.className = moonIconClass;
+            label.textContent = ' Dark Mode';
         }
 
-        themeToggleBtn.innerHTML = ''; // Clear previous content
+        themeToggleBtn.innerHTML = '';
         themeToggleBtn.appendChild(icon);
-        themeToggleBtn.appendChild(textPlaceholder);
+        themeToggleBtn.appendChild(label);
     }
 
     if (themeToggleBtn) {
