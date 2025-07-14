@@ -4,6 +4,9 @@ document.addEventListener('DOMContentLoaded', () => {
     const sunIconClass = 'bx bxs-sun';
 
     function updateIcon(isDarkMode) {
+        const btnContent = themeToggleBtn.querySelector('.btn-content');
+        if (!btnContent) return;
+        btnContent.innerHTML = '';
         const icon = document.createElement('i');
         const label = document.createElement('span');
         label.className = 'toggle-label';
@@ -16,9 +19,8 @@ document.addEventListener('DOMContentLoaded', () => {
             label.textContent = ' Dark Mode';
         }
 
-        themeToggleBtn.innerHTML = '';
-        themeToggleBtn.appendChild(icon);
-        themeToggleBtn.appendChild(label);
+        btnContent.appendChild(icon);
+        btnContent.appendChild(label);
     }
 
     if (themeToggleBtn) {
