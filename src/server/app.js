@@ -18,7 +18,7 @@ const io = socketIo(server, {
     }
 });
 
-const wss = new WebSocket.Server({ 
+const wss = new WebSocket.Server({
     noServer: true,
     perMessageDeflate: false
 });
@@ -39,7 +39,7 @@ const initializeSocketIo = require('./websockets/socket-manager.js');
 const initializeCameraSockets = require('./websockets/camera-events.js');
 
 setInterval(() => {
-        db.run("DELETE FROM setup_sessions WHERE created_at < DATETIME('now', '-1 hour') AND session_id NOT IN (SELECT camera_id FROM cameras)", function(err) {
+    db.run("DELETE FROM setup_sessions WHERE created_at < DATETIME('now', '-1 hour') AND session_id NOT IN (SELECT camera_id FROM cameras)", function (err) {
         if (err) {
             console.error('Error cleaning up old sessions:', err.message);
         } else if (this.changes > 0) {
