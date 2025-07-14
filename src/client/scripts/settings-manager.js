@@ -14,11 +14,11 @@ class SettingsManager {
         // Settings button click
         const settingsBtn = document.getElementById('settings-button');
         const mobileSettingsBtn = document.getElementById('mobile-settings-button');
-        
+
         if (settingsBtn) {
             settingsBtn.addEventListener('click', () => this.openSettings());
         }
-        
+
         if (mobileSettingsBtn) {
             mobileSettingsBtn.addEventListener('click', () => this.openSettings());
         }
@@ -26,7 +26,7 @@ class SettingsManager {
         // Close settings
         const settingsOverlay = document.getElementById('settings-overlay');
         const settingsClose = document.getElementById('settings-close');
-        
+
         if (settingsOverlay) {
             settingsOverlay.addEventListener('click', (e) => {
                 if (e.target === settingsOverlay) {
@@ -34,7 +34,7 @@ class SettingsManager {
                 }
             });
         }
-        
+
         if (settingsClose) {
             settingsClose.addEventListener('click', () => this.closeSettings());
         }
@@ -107,7 +107,7 @@ class SettingsManager {
 
     applyTheme(theme) {
         const body = document.body;
-        
+
         if (theme === 'dark') {
             body.classList.add('dark-mode');
             localStorage.setItem('theme', 'dark');
@@ -119,12 +119,12 @@ class SettingsManager {
 
     loadCurrentTheme() {
         const currentTheme = localStorage.getItem('theme') === 'dark' ? 'dark' : 'light';
-        
+
         // Apply theme to body
         if (currentTheme === 'dark') {
             document.body.classList.add('dark-mode');
         }
-        
+
         // Update UI
         const themeOption = document.querySelector(`[data-theme="${currentTheme}"]`);
         if (themeOption) {

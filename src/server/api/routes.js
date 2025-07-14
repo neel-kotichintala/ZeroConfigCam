@@ -1,6 +1,6 @@
 const express = require('express');
-const authRoutes = require('./auth');
-const createCameraRouter = require('./camera');
+const authRoutes = require('./authentication');
+const createCameraRouter = require('./cameras');
 
 function createMainApiRouter(io, activeCameras) {
     const router = express.Router();

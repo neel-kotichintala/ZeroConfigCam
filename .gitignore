@@ -16,3 +16,7 @@ yarn-error.log*
 # OS-specific
 .DS_Store
 Thumbs.db
+
+# Structure md files
+REORGANIZATION-SUMMARY.md
+STRUCTURE.md

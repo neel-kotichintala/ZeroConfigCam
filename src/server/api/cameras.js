@@ -1,7 +1,7 @@
 const express = require('express');
 const jwt = require('jsonwebtoken');
 const QRCode = require('qrcode');
-const db = require('../db/database');
+const db = require('../database/connection');
 
 function createCameraRouter(io, activeCameras) {
     const router = express.Router();

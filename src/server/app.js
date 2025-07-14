@@ -1,30 +1,13 @@
-const url = require('url');
+// Main Server Application
 const express = require('express');
 const http = require('http');
 const socketIo = require('socket.io');
 const path = require('path');
-const bcryptjs = require('bcryptjs');
-const jwt = require('jsonwebtoken');
-
-const QRCode = require('qrcode');
-
 const WebSocket = require('ws');
-const os = require('os');
 require('dotenv').config();
 
-const PORT = process.env.PORT || 3000;
-
-function getLocalIpAddress() {
-    const interfaces = os.networkInterfaces();
-    for (const name of Object.keys(interfaces)) {
-        for (const iface of interfaces[name]) {
-            if (iface.family === 'IPv4' && !iface.internal) {
-                return iface.address;
-            }
-        }
-    }
-    return '0.0.0.0'; // Fallback
-}
+// Import configuration
+const config = require('../config/app-config.js');
 
 const app = express();
 const server = http.createServer(app);
@@ -44,12 +27,16 @@ const activeCameras = {}; // { cameraId: { name, userId, status }, ... }
 
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
-app.use(express.static(path.join(__dirname, '..', 'public')));
+// Serve static files from organized client directory
+app.use('/styles', express.static(path.join(__dirname, '..', 'client', 'styles')));
+app.use('/scripts', express.static(path.join(__dirname, '..', 'client', 'scripts')));
+app.use('/assets', express.static(path.join(__dirname, '..', 'client', 'assets')));
+app.use('/shared', express.static(path.join(__dirname, '..', 'shared')));
 
-const db = require('./db/database.js');
-const createMainApiRouter = require('./routes');
-const initializeSocketIo = require('./sockets/socketHandler.js');
-const initializeCameraSockets = require('./sockets/cameraHandler.js');
+const db = require('./database/connection.js');
+const createMainApiRouter = require('./api/routes.js');
+const initializeSocketIo = require('./websockets/socket-manager.js');
+const initializeCameraSockets = require('./websockets/camera-events.js');
 
 setInterval(() => {
         db.run("DELETE FROM setup_sessions WHERE created_at < DATETIME('now', '-1 hour') AND session_id NOT IN (SELECT camera_id FROM cameras)", function(err) {
@@ -63,9 +50,9 @@ setInterval(() => {
 
 
 
-app.get('/', (req, res) => res.sendFile(path.join(__dirname, '..', 'public', 'index.html')));
-app.get('/setup', (req, res) => res.sendFile(path.join(__dirname, '..', 'public', 'setup.html')));
-app.get('/dashboard', (req, res) => res.sendFile(path.join(__dirname, '..', 'public', 'dashboard.html')));
+app.get('/', (req, res) => res.sendFile(path.join(__dirname, '..', 'client', 'pages', 'login.html')));
+app.get('/setup', (req, res) => res.sendFile(path.join(__dirname, '..', 'client', 'pages', 'camera-setup.html')));
+app.get('/dashboard', (req, res) => res.sendFile(path.join(__dirname, '..', 'client', 'pages', 'dashboard.html')));
 
 
 
@@ -98,6 +85,8 @@ process.on('SIGINT', () => {
     });
 });
 
-server.listen(PORT, '0.0.0.0', () => {
-    console.log(`Server running on port ${PORT} and accessible on the local network.`);
+server.listen(config.server.port, '0.0.0.0', () => {
+    console.log(`🚀 Server running on port ${config.server.port}`);
+    console.log(`📱 Environment: ${config.server.environment}`);
+    console.log(`🌐 Accessible on the local network`);
 });

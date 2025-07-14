@@ -7,9 +7,7 @@
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@400;500;700&display=swap" rel="stylesheet">
-    <link rel="stylesheet" href="/css/navbar.css">
-    <link rel="stylesheet" href="/css/dark-mode.css">
-    <link rel="stylesheet" href="/css/settings.css">
+    <link rel="stylesheet" href="/styles/main.css">
     <link href='https://unpkg.com/boxicons@2.1.4/css/boxicons.min.css' rel='stylesheet'>
     <style>
         * {
@@ -345,7 +343,7 @@
 <body>
     <nav class="navbar">
         <div class="logo-container">
-            <img src="/icons/Logo.png" alt="SimpleVision Logo" class="logo">
+            <img src="/assets/icons/Logo.png" alt="SimpleVision Logo" class="logo">
             <a href="/dashboard" class="logo-link"><h1>SomethingVision</h1></a>
         </div>
         
@@ -378,7 +376,7 @@
     <div id="menu-overlay" class="menu-overlay"></div>
     <div id="menu" class="menu">
         <div class="menu-header">
-            <h3>Menu</h3>
+            <h3 id="mobile-username">Menu</h3>
         </div>
         <a href="/dashboard" class="menu-item">
             <i class='bx bxs-dashboard'></i>
@@ -586,8 +584,10 @@
     </div>
 
     <script src="/socket.io/socket.io.js"></script>
-    <script src="/js/setup-client.js" defer></script>
-    <script src="/js/navbar-toggle.js" defer></script>
-    <script src="/js/settings.js" defer></script>
+    <script src="/shared/utils.js"></script>
+    <script src="/scripts/page-transitions.js"></script>
+    <script src="/scripts/camera-setup.js" defer></script>
+    <script src="/scripts/mobile-navigation.js" defer></script>
+    <script src="/scripts/settings-manager.js" defer></script>
 </body>
 </html>

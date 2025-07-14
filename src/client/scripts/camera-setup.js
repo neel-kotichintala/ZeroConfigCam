@@ -27,9 +27,18 @@ const setupContainer = document.querySelector('.setup-container');
 let socket;
 
 document.addEventListener('DOMContentLoaded', () => {
+    const username = localStorage.getItem('username') || 'User';
+    
+    // Update desktop username
     const usernameSpan = document.getElementById('username');
     if (usernameSpan) {
-        usernameSpan.textContent = localStorage.getItem('username') || 'User';
+        usernameSpan.textContent = username;
+    }
+    
+    // Update mobile menu username
+    const mobileUsernameSpan = document.getElementById('mobile-username');
+    if (mobileUsernameSpan) {
+        mobileUsernameSpan.textContent = username;
     }
     const token = localStorage.getItem('token');
     if (!token) {
@@ -59,16 +68,29 @@ document.addEventListener('DOMContentLoaded', () => {
                 modal.style.display = 'none';
             }
             
-            // Hide the main setup form and show the success message
-            if (setupContainer) {
-                setupContainer.classList.add('hidden');
-            }
-            if (successNotification) {
-                successNotification.classList.remove('hidden');
-            }
-
             // Stop the countdown timer
             clearTimers();
+            
+            // Show beautiful success animation
+            if (window.pageTransitions) {
+                window.pageTransitions.showSuccessAnimation({
+                    title: 'Camera Connected!',
+                    message: `"${data.name}" has been successfully added to your dashboard and is now streaming.`,
+                    buttonText: 'View Dashboard',
+                    onContinue: () => {
+                        // Smooth transition to dashboard
+                        window.navigateToPage('/dashboard');
+                    }
+                });
+            } else {
+                // Fallback if transitions aren't loaded
+                if (setupContainer) {
+                    setupContainer.classList.add('hidden');
+                }
+                if (successNotification) {
+                    successNotification.classList.remove('hidden');
+                }
+            }
         }
     });
 });

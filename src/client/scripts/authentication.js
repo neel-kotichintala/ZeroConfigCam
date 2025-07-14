@@ -60,9 +60,14 @@ document.addEventListener('DOMContentLoaded', () => {
                 localStorage.setItem('token', data.token);
                 localStorage.setItem('username', data.username);
                 showAlert('Login successful! Redirecting...', 'success');
+                
                 setTimeout(() => {
-                    window.location.href = '/dashboard';
-                }, 1000);
+                    if (window.navigateToPage) {
+                        window.navigateToPage('/dashboard');
+                    } else {
+                        window.location.href = '/dashboard';
+                    }
+                }, 800);
             } else {
                 showAlert(data.error || 'Login failed', 'error');
             }
@@ -109,9 +114,14 @@ document.addEventListener('DOMContentLoaded', () => {
                 localStorage.setItem('token', data.token);
                 localStorage.setItem('username', data.username);
                 showAlert('Registration successful! Redirecting...', 'success');
+                
                 setTimeout(() => {
-                    window.location.href = '/dashboard';
-                }, 1000);
+                    if (window.navigateToPage) {
+                        window.navigateToPage('/dashboard');
+                    } else {
+                        window.location.href = '/dashboard';
+                    }
+                }, 800);
             } else {
                 showAlert(data.error || 'Registration failed', 'error');
             }

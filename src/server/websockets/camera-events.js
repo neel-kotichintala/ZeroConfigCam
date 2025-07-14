@@ -1,5 +1,5 @@
 const url = require('url');
-const db = require('../db/database');
+const db = require('../database/connection');
 
 function initializeCameraSockets(server, wss, io, activeCameras) {
 

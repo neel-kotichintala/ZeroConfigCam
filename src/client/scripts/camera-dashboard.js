@@ -21,7 +21,18 @@ socket.on('connect_error', (err) => {
 });
 
 document.addEventListener('DOMContentLoaded', () => {
-    usernameSpan.textContent = localStorage.getItem('username') || 'User';
+    const username = localStorage.getItem('username') || 'User';
+    
+    // Update desktop username
+    if (usernameSpan) {
+        usernameSpan.textContent = username;
+    }
+    
+    // Update mobile menu username
+    const mobileUsernameSpan = document.getElementById('mobile-username');
+    if (mobileUsernameSpan) {
+        mobileUsernameSpan.textContent = username;
+    }
 });
 
 function logout() {
