@@ -10,6 +10,7 @@
     <link rel="stylesheet" href="/css/navbar.css">
     <link rel="stylesheet" href="/css/dark-mode.css">
     <link rel="stylesheet" href="/css/camera-card.css">
+    <link rel="stylesheet" href="/css/settings.css">
     <link href='https://unpkg.com/boxicons@2.1.4/css/boxicons.min.css' rel='stylesheet'>
     <style>
         * { margin: 0; padding: 0; box-sizing: border-box; }
@@ -34,23 +35,34 @@
         .section-header h2 { color: #2d3748; }
         .view-controls { display: flex; gap: 0.5rem; }
         .view-controls .btn {
-            background: #f0f2f5; /* A cleaner, lighter gray */
-            border: 2px solid transparent;
-            padding: 4px; /* Reduced padding so the icon fills the button */
+            background: white;
+            border: 2px solid #e2e8f0;
+            padding: 0.75rem;
             border-radius: 8px;
-            line-height: 0; /* Collapse button height to the icon */
+            cursor: pointer;
+            transition: all 0.2s ease;
+            display: flex;
+            align-items: center;
+            justify-content: center;
         }
         .view-controls .btn:hover {
-            border-color: #d0d8e0; /* Subtle hover effect */
+            border-color: #9677ef;
+            background: #f8fafc;
+            transform: translateY(-1px);
+            box-shadow: 0 4px 12px rgba(150, 119, 239, 0.15);
         }
         .view-controls .btn.active {
-            border-color: #4299e1; /* A clear blue indicator for the active view */
-            background: #e0eaf5;
+            border-color: #9677ef;
+            background: #9677ef;
+            color: white;
+            box-shadow: 0 4px 12px rgba(150, 119, 239, 0.25);
         }
-        .view-controls .btn img {
-            height: 32px; /* Larger icons */
-            width: 32px;
-            mix-blend-mode: darken; /* Magically removes the white background */
+        .view-controls .btn i {
+            font-size: 1.25rem;
+            color: #4a5568;
+        }
+        .view-controls .btn.active i {
+            color: white;
         }
         .no-cameras { text-align: center; padding: 3rem; color: #718096; grid-column: 1 / -1; }
 
@@ -79,49 +91,153 @@
             <img src="/icons/Logo.png" alt="SimpleVision Logo" class="logo">
             <a href="/dashboard" class="logo-link"><h1>SomethingVision</h1></a>
         </div>
-        <button id="nav-toggle" class="nav-toggle-btn" aria-label="Menu">
+        
+        <button id="menu-button" class="menu-button" aria-label="Menu">
             <i class='bx bx-menu-alt-right'></i>
         </button>
-        <div class="user-info">
+        
+        <div class="nav-items">
             <span class="username" id="username"></span>
-            <a href="/dashboard" class="btn active">
-                <span class="btn-content">
-                    <i class='bx bxs-dashboard'></i>
-                    <span>Dashboard</span>
-                </span>
+            <a href="/dashboard" class="nav-button active">
+                <i class='bx bxs-dashboard'></i>
+                <span>Dashboard</span>
             </a>
-            <a href="/setup" class="btn">
-                <span class="btn-content">
-                    <i class='bx bx-camera'></i>
-                    <span>Setup</span>
-                </span>
+            <a href="/setup" class="nav-button">
+                <i class='bx bx-camera'></i>
+                <span>Setup</span>
             </a>
-            <button id="theme-toggle" class="btn theme-toggle-btn">
-                <span class="btn-content">
-                    <!-- Icon and label will be set by JS -->
-                </span>
+            <button id="settings-button" class="nav-button">
+                <i class='bx bx-cog'></i>
+                <span>Settings</span>
             </button>
-            <button class="btn btn-logout" onclick="logout()">
-                <span class="btn-content">
-                    <i class='bx bx-log-out'></i>
-                    <span>Logout</span>
-                </span>
+            <button class="nav-button" onclick="logout()">
+                <i class='bx bx-log-out'></i>
+                <span>Logout</span>
             </button>
         </div>
     </nav>
+
+    <!-- Mobile Menu -->
+    <div id="menu-overlay" class="menu-overlay"></div>
+    <div id="menu" class="menu">
+        <div class="menu-header">
+            <h3>Menu</h3>
+        </div>
+        <a href="/dashboard" class="menu-item active">
+            <i class='bx bxs-dashboard'></i>
+            <span>Dashboard</span>
+        </a>
+        <a href="/setup" class="menu-item">
+            <i class='bx bx-camera'></i>
+            <span>Setup</span>
+        </a>
+        <button id="mobile-settings-button" class="menu-item">
+            <i class='bx bx-cog'></i>
+            <span>Settings</span>
+        </button>
+        <button class="menu-item" onclick="logout()">
+            <i class='bx bx-log-out'></i>
+            <span>Logout</span>
+        </button>
+    </div>
 
     <div class="container">
         <div class="section-header">
             <h2>Your Cameras</h2>
             <div class="view-controls">
-                <button id="view-grid" class="btn active"><img src="/icons/grid-view.png" alt="Grid View"></button>
-                <button id="view-list" class="btn"><img src="/icons/list-view.png" alt="List View"></button>
-                <button id="view-full" class="btn"><img src="/icons/full-view.png" alt="Full View"></button>
+                <button id="view-grid" class="btn active" title="Grid View">
+                    <i class='bx bx-grid-alt'></i>
+                </button>
+                <button id="view-list" class="btn" title="List View">
+                    <i class='bx bx-list-ul'></i>
+                </button>
+                <button id="view-full" class="btn" title="Full View">
+                    <i class='bx bx-fullscreen'></i>
+                </button>
             </div>
         </div>
         <div id="camerasContainer" class="cameras-grid">
             <div id="noCamerasMessage" class="no-cameras">
                 <p>Waiting for camera connection...</p>
+            </div>
+        </div>
+    </div>
+
+    <!-- Settings Modal -->
+    <div id="settings-overlay" class="settings-overlay">
+        <div class="settings-modal">
+            <button id="settings-close" class="settings-close">
+                <i class='bx bx-x'></i>
+            </button>
+            
+            <div class="settings-sidebar">
+                <div class="settings-header">
+                    <h2>Settings</h2>
+                </div>
+                
+                <button class="settings-tab active" data-tab="appearance">
+                    <i class='bx bx-palette'></i>
+                    <span>Appearance</span>
+                </button>
+                
+                <button class="settings-tab" data-tab="network">
+                    <i class='bx bx-wifi'></i>
+                    <span>Network</span>
+                </button>
+                
+                <button class="settings-tab" data-tab="notifications">
+                    <i class='bx bx-bell'></i>
+                    <span>Notifications</span>
+                </button>
+            </div>
+            
+            <div class="settings-content">
+                <!-- Appearance Tab -->
+                <div id="appearance-tab" class="tab-content active">
+                    <h3>Theme Settings</h3>
+                    
+                    <div class="theme-option active" data-theme="light">
+                        <div class="theme-info">
+                            <div class="theme-icon light">
+                                <i class='bx bx-sun'></i>
+                            </div>
+                            <div class="theme-details">
+                                <h4>Light Mode</h4>
+                                <p>Clean and bright interface</p>
+                            </div>
+                        </div>
+                        <div class="theme-check">
+                            <i class='bx bx-check'></i>
+                        </div>
+                    </div>
+                    
+                    <div class="theme-option" data-theme="dark">
+                        <div class="theme-info">
+                            <div class="theme-icon dark">
+                                <i class='bx bx-moon'></i>
+                            </div>
+                            <div class="theme-details">
+                                <h4>Dark Mode</h4>
+                                <p>Easy on the eyes in low light</p>
+                            </div>
+                        </div>
+                        <div class="theme-check">
+                            <i class='bx bx-check'></i>
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- Network Tab -->
+                <div id="network-tab" class="tab-content">
+                    <h3>Network Settings</h3>
+                    <p>Network configuration options will be available here.</p>
+                </div>
+                
+                <!-- Notifications Tab -->
+                <div id="notifications-tab" class="tab-content">
+                    <h3>Notification Settings</h3>
+                    <p>Notification preferences will be available here.</p>
+                </div>
             </div>
         </div>
     </div>
@@ -141,6 +257,6 @@
     <script src="/socket.io/socket.io.js"></script>
     <script src="/js/dashboard-client.js" defer></script>
     <script src="/js/navbar-toggle.js" defer></script>
-    <script src="/js/theme-toggle.js" defer></script>
+    <script src="/js/settings.js" defer></script>
 </body>
 </html>

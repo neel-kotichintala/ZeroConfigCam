@@ -1,21 +1,33 @@
-// Mobile navbar toggle
+// Mobile menu toggle
 
 document.addEventListener('DOMContentLoaded', () => {
-    const toggleBtn = document.getElementById('nav-toggle');
-    const menu = document.querySelector('.user-info');
+    const menuButton = document.getElementById('menu-button');
+    const menu = document.getElementById('menu');
+    const menuOverlay = document.getElementById('menu-overlay');
 
-    if (!toggleBtn || !menu) return;
+    if (!menuButton || !menu || !menuOverlay) return;
 
-    toggleBtn.addEventListener('click', () => {
-        menu.classList.toggle('open');
-        toggleBtn.classList.toggle('open');
+    // Open menu
+    menuButton.addEventListener('click', () => {
+        menu.classList.add('open');
+        menuOverlay.classList.add('open');
+        document.body.style.overflow = 'hidden'; // Prevent scrolling
     });
 
-    // Close menu when clicking outside on mobile
-    document.addEventListener('click', (e) => {
-        if (!menu.contains(e.target) && !toggleBtn.contains(e.target)) {
-            menu.classList.remove('open');
-            toggleBtn.classList.remove('open');
+    // Close menu when clicking overlay
+    menuOverlay.addEventListener('click', closeMenu);
+
+    // Close menu function
+    function closeMenu() {
+        menu.classList.remove('open');
+        menuOverlay.classList.remove('open');
+        document.body.style.overflow = ''; // Restore scrolling
+    }
+
+    // Close menu when pressing Escape key
+    document.addEventListener('keydown', (e) => {
+        if (e.key === 'Escape' && menu.classList.contains('open')) {
+            closeMenu();
         }
     });
 });

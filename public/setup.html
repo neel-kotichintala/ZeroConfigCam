@@ -9,6 +9,7 @@
     <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@400;500;700&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="/css/navbar.css">
     <link rel="stylesheet" href="/css/dark-mode.css">
+    <link rel="stylesheet" href="/css/settings.css">
     <link href='https://unpkg.com/boxicons@2.1.4/css/boxicons.min.css' rel='stylesheet'>
     <style>
         * {
@@ -347,36 +348,55 @@
             <img src="/icons/Logo.png" alt="SimpleVision Logo" class="logo">
             <a href="/dashboard" class="logo-link"><h1>SomethingVision</h1></a>
         </div>
-        <button id="nav-toggle" class="nav-toggle-btn" aria-label="Menu">
+        
+        <button id="menu-button" class="menu-button" aria-label="Menu">
             <i class='bx bx-menu-alt-right'></i>
         </button>
-        <div class="user-info">
+        
+        <div class="nav-items">
             <span class="username" id="username"></span>
-            <a href="/dashboard" class="btn">
-                <span class="btn-content">
-                    <i class='bx bxs-dashboard'></i>
-                    <span>Dashboard</span>
-                </span>
+            <a href="/dashboard" class="nav-button">
+                <i class='bx bxs-dashboard'></i>
+                <span>Dashboard</span>
             </a>
-            <a href="/setup" class="btn active">
-                <span class="btn-content">
-                    <i class='bx bx-camera'></i>
-                    <span>Setup</span>
-                </span>
+            <a href="/setup" class="nav-button active">
+                <i class='bx bx-camera'></i>
+                <span>Setup</span>
             </a>
-            <button id="theme-toggle" class="btn theme-toggle-btn">
-                <span class="btn-content">
-                    <!-- Icon and label will be set by JS -->
-                </span>
+            <button id="settings-button" class="nav-button">
+                <i class='bx bx-cog'></i>
+                <span>Settings</span>
             </button>
-            <button class="btn btn-logout" onclick="logout()">
-                <span class="btn-content">
-                    <i class='bx bx-log-out'></i>
-                    <span>Logout</span>
-                </span>
+            <button class="nav-button" onclick="logout()">
+                <i class='bx bx-log-out'></i>
+                <span>Logout</span>
             </button>
         </div>
     </nav>
+
+    <!-- Mobile Menu -->
+    <div id="menu-overlay" class="menu-overlay"></div>
+    <div id="menu" class="menu">
+        <div class="menu-header">
+            <h3>Menu</h3>
+        </div>
+        <a href="/dashboard" class="menu-item">
+            <i class='bx bxs-dashboard'></i>
+            <span>Dashboard</span>
+        </a>
+        <a href="/setup" class="menu-item active">
+            <i class='bx bx-camera'></i>
+            <span>Setup</span>
+        </a>
+        <button id="mobile-settings-button" class="menu-item">
+            <i class='bx bx-cog'></i>
+            <span>Settings</span>
+        </button>
+        <button class="menu-item" onclick="logout()">
+            <i class='bx bx-log-out'></i>
+            <span>Logout</span>
+        </button>
+    </div>
 
     <div class="container">
         <!-- Success Notification -->
@@ -480,15 +500,94 @@
         </div>
     </div>
 
+    <!-- Settings Modal -->
+    <div id="settings-overlay" class="settings-overlay">
+        <div class="settings-modal">
+            <button id="settings-close" class="settings-close">
+                <i class='bx bx-x'></i>
+            </button>
+            
+            <div class="settings-sidebar">
+                <div class="settings-header">
+                    <h2>Settings</h2>
+                </div>
+                
+                <button class="settings-tab active" data-tab="appearance">
+                    <i class='bx bx-palette'></i>
+                    <span>Appearance</span>
+                </button>
+                
+                <button class="settings-tab" data-tab="network">
+                    <i class='bx bx-wifi'></i>
+                    <span>Network</span>
+                </button>
+                
+                <button class="settings-tab" data-tab="notifications">
+                    <i class='bx bx-bell'></i>
+                    <span>Notifications</span>
+                </button>
+            </div>
+            
+            <div class="settings-content">
+                <!-- Appearance Tab -->
+                <div id="appearance-tab" class="tab-content active">
+                    <h3>Theme Settings</h3>
+                    
+                    <div class="theme-option active" data-theme="light">
+                        <div class="theme-info">
+                            <div class="theme-icon light">
+                                <i class='bx bx-sun'></i>
+                            </div>
+                            <div class="theme-details">
+                                <h4>Light Mode</h4>
+                                <p>Clean and bright interface</p>
+                            </div>
+                        </div>
+                        <div class="theme-check">
+                            <i class='bx bx-check'></i>
+                        </div>
+                    </div>
+                    
+                    <div class="theme-option" data-theme="dark">
+                        <div class="theme-info">
+                            <div class="theme-icon dark">
+                                <i class='bx bx-moon'></i>
+                            </div>
+                            <div class="theme-details">
+                                <h4>Dark Mode</h4>
+                                <p>Easy on the eyes in low light</p>
+                            </div>
+                        </div>
+                        <div class="theme-check">
+                            <i class='bx bx-check'></i>
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- Network Tab -->
+                <div id="network-tab" class="tab-content">
+                    <h3>Network Settings</h3>
+                    <p>Network configuration options will be available here.</p>
+                </div>
+                
+                <!-- Notifications Tab -->
+                <div id="notifications-tab" class="tab-content">
+                    <h3>Notification Settings</h3>
+                    <p>Notification preferences will be available here.</p>
+                </div>
+            </div>
+        </div>
+    </div>
+
     <!-- The Modal -->
     <div id="qrModal" class="modal">
         <span class="close">&times;</span>
         <img class="modal-content" id="modalQrImage">
     </div>
 
-        <script src="/socket.io/socket.io.js"></script>
+    <script src="/socket.io/socket.io.js"></script>
     <script src="/js/setup-client.js" defer></script>
     <script src="/js/navbar-toggle.js" defer></script>
-    <script src="/js/theme-toggle.js" defer></script>
+    <script src="/js/settings.js" defer></script>
 </body>
 </html>

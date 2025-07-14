@@ -1,20 +1,5 @@
-/* Global Light Mode Text Color */
-body {
-    color: #2d3748;
-}
-
-/* Mobile menu toggle button */
-.nav-toggle-btn {
-    display: none;
-    background: none;
-    border: none;
-    font-size: 2rem;
-    color: #2d3748;
-    cursor: pointer;
-}
-
 /* =====================
-   NAVBAR LAYOUT & LOGO
+   NAVBAR BASE STYLES
    ===================== */
 .navbar {
     background: white;
@@ -26,7 +11,6 @@ body {
     align-items: center;
     position: relative;
     z-index: 1000;
-    box-sizing: border-box;
 }
 
 .navbar h1 {
@@ -34,13 +18,13 @@ body {
     font-size: 1.5rem;
 }
 
+/* =====================
+   LOGO SECTION
+   ===================== */
 .logo-container {
     display: flex;
     align-items: center;
     gap: 0.75rem;
-    flex: none;
-    min-width: 200px;
-    padding: 0;
 }
 
 .logo {
@@ -54,102 +38,71 @@ body {
 }
 
 /* =====================
-   USERNAME
+   MENU BUTTON (MOBILE)
    ===================== */
-.navbar .username {
+.menu-button {
+    display: none;
+    background: none;
+    border: none;
+    font-size: 2rem;
     color: #2d3748;
-    font-weight: 600;
-    font-size: 1rem;
-    min-height: 64px;
-    display: flex;
-    align-items: center;
-    margin-right: 1.5rem;
-    padding: 0 0.5rem;
+    cursor: pointer;
+    padding: 0.5rem;
 }
 
 /* =====================
-   NAVBAR BUTTONS (ALL)
+   DESKTOP NAVIGATION
    ===================== */
-.user-info {
+.nav-items {
     display: flex;
     align-items: center;
     gap: 0;
-    margin-left: auto;
     height: 100%;
-    flex: none;
-    align-self: stretch;
+    margin-left: auto;
 }
 
-/* All navbar buttons: Dashboard, Setup, Theme Toggle, Logout */
-.navbar .user-info .btn,
-.user-info .theme-toggle-btn {
+.username {
+    color: #2d3748;
+    font-weight: 600;
+    font-size: 1rem;
+    padding: 0 1.5rem;
+    border-right: 1px solid #e2e8f0;
+    height: 64px;
+    display: flex;
+    align-items: center;
+}
+
+.nav-button {
     display: flex;
     flex-direction: column;
     align-items: center;
     justify-content: center;
-    width: 120px;
-    min-width: 160px;
-    max-width: 160px;
-    min-height: 64px;
+    min-width: 120px;
     height: 64px;
     padding: 0;
     border: none;
     cursor: pointer;
     text-decoration: none;
     background: none;
-    box-sizing: border-box;
-    transition: background 0.2s, color 0.2s;
     color: #2d3748;
-    position: relative;
-    overflow: hidden;
     font-weight: 500;
-    border-radius: 0;
     border-left: 1px solid #e2e8f0;
+    position: relative;
+    transition: all 0.2s;
 }
 
-/* Remove left border from first button */
-.navbar .user-info .btn:first-child,
-.user-info .theme-toggle-btn:first-child {
-    border-left: none;
-}
-
-/* Remove right border from last button */
-.navbar .user-info .btn:last-child {
-    margin-right: 0;
-    border-right: none;
-}
-
-/* =====================
-   BUTTON CONTENT (ICON + LABEL)
-   ===================== */
-.user-info .btn-content {
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    justify-content: center;
-}
-
-.user-info .btn-content i {
+.nav-button i {
     font-size: 1.5rem;
-    margin-bottom: 0;
-    display: block;
+    margin-bottom: 2px;
 }
 
-.user-info .btn-content span,
-.user-info .theme-toggle-btn .toggle-label {
+.nav-button span {
     font-size: 0.8rem;
     font-weight: 600;
-    text-align: center;
-    margin-top: 0;
-    white-space: nowrap;
-    display: block;
 }
 
-/* =====================
-   BUTTON HOVER & ACTIVE EFFECTS
-   ===================== */
-.user-info .btn::after,
-.user-info .theme-toggle-btn::after {
+/* Active state and hover effects */
+.nav-button::after {
     content: '';
     position: absolute;
     width: 100%;
@@ -158,225 +111,176 @@ body {
     left: 0;
     background-color: #9677ef;
     transform: scaleX(0);
-    transform-origin: bottom;
-    transition: transform 0.3s ease-in-out;
+    transition: transform 0.3s ease;
 }
 
-.user-info .btn:hover::after,
-.user-info .btn.active::after,
-.user-info .theme-toggle-btn:hover::after {
+.nav-button:hover::after,
+.nav-button.active::after {
     transform: scaleX(1);
 }
 
-.user-info .btn:hover,
-.user-info .btn:focus,
-.user-info .theme-toggle-btn:hover,
-.user-info .theme-toggle-btn:focus {
-    background: none !important;
-    box-shadow: none !important;
-    outline: none !important;
-    color: #2d3748;
-}
-
 /* =====================
-   LOGOUT BUTTON (uses .btn and .btn-logout)
+   MOBILE MENU
    ===================== */
-.btn-logout {
-    /* Add any custom styles for the logout button here if needed */
-}
-
-/* =====================
-   THEME TOGGLE BUTTON (uses .btn and .theme-toggle-btn)
-   ===================== */
-.theme-toggle-btn {
-    /* Add any custom styles for the theme toggle button here if needed */
-}
-
-/* =====================
-   MOBILE MENU DROPDOWN
-   ===================== */
-.mobile-menu {
-    display: none;
-    position: absolute;
-    top: 64px;
-    right: 1rem;
-    width: 280px;
+.menu {
+    position: fixed;
+    top: 0;
+    right: -300px;
+    width: 300px;
+    height: 100vh;
     background: white;
-    border-radius: 12px;
-    box-shadow: 0 12px 32px 0 rgba(0,0,0,0.15), 0 2px 8px 0 rgba(0,0,0,0.1);
-    border: 1px solid #e2e8f0;
-    overflow: hidden;
-    z-index: 1200;
-    flex-direction: column;
-    padding: 0;
-    animation: dropdown-fade-in 0.2s ease-out;
+    box-shadow: -5px 0 15px rgba(0, 0, 0, 0.1);
+    transition: right 0.3s ease;
+    z-index: 2000;
+    padding: 2rem 0;
+    overflow-y: auto;
 }
 
-.mobile-menu.open {
-    display: flex;
+.menu.open {
+    right: 0;
 }
 
-.mobile-menu .menu-header {
-    padding: 1rem 1.5rem;
+.menu-header {
+    padding: 0 2rem 1rem;
     border-bottom: 1px solid #e2e8f0;
-    background: #f8fafc;
-    font-weight: 700;
-    font-size: 1.1rem;
-    color: #9677ef;
-    text-align: left;
+    margin-bottom: 1rem;
 }
 
-.mobile-menu .menu-item {
+.menu-header h3 {
+    color: #9677ef;
+    font-size: 1.2rem;
+    margin: 0;
+}
+
+.menu-item {
     display: flex;
     align-items: center;
     gap: 1rem;
-    padding: 1rem 1.5rem;
-    background: none;
-    border: none;
-    text-align: left;
+    padding: 1rem 2rem;
     color: #2d3748;
+    text-decoration: none;
+    font-weight: 500;
+    font-size: 1rem;
+    transition: background 0.2s;
+    border: none;
+    background: none;
+    width: 100%;
+    text-align: left;
+    cursor: pointer;
+}
+
+.menu-item span {
     font-size: 1rem;
     font-weight: 500;
-    cursor: pointer;
-    transition: all 0.2s;
-    border-bottom: 1px solid #e2e8f0;
-    text-decoration: none;
-    width: 100%;
 }
 
-.mobile-menu .menu-item:last-child {
-    border-bottom: none;
-}
-
-.mobile-menu .menu-item:hover,
-.mobile-menu .menu-item:focus {
-    background: #f3f4f6;
+.menu-item:hover {
+    background: #f8fafc;
     color: #9677ef;
-    outline: none;
 }
 
-.mobile-menu .menu-item.active {
-    background: #f3f4f6;
+.menu-item.active {
+    background: #f8fafc;
     color: #9677ef;
-    font-weight: 700;
+    font-weight: 600;
 }
 
-.mobile-menu .menu-item i {
+.menu-item i {
     font-size: 1.25rem;
-    width: 20px;
+    width: 24px;
     text-align: center;
     color: #9677ef;
 }
 
-.mobile-menu .menu-item.active i {
-    color: #9677ef;
-}
-
-/* Menu overlay for mobile */
+/* Menu overlay */
 .menu-overlay {
-    display: none;
     position: fixed;
     top: 0;
     left: 0;
     width: 100%;
     height: 100%;
-    background: rgba(0, 0, 0, 0.3);
-    z-index: 1100;
+    background: rgba(0, 0, 0, 0.5);
+    z-index: 1500;
+    opacity: 0;
+    visibility: hidden;
+    transition: all 0.3s ease;
 }
 
 .menu-overlay.open {
-    display: block;
+    opacity: 1;
+    visibility: visible;
 }
 
 /* =====================
-   RESPONSIVE (TABLET & MOBILE)
+   RESPONSIVE DESIGN
    ===================== */
 @media (max-width: 1024px) {
     .navbar {
-        min-height: 64px;
-        padding: 0.75rem 1rem;
+        padding: 0 1rem;
     }
-    
-    .logo { 
-        height: 40px; 
-        width: 40px; 
+
+    .logo {
+        height: 40px;
+        width: 40px;
     }
-    
-    .logo-container h1 { 
-        font-size: 1.25rem; 
+
+    .navbar h1 {
+        font-size: 1.25rem;
     }
-    
-    .nav-toggle-btn { 
-        display: block; 
+
+    .menu-button {
+        display: block;
     }
-    
-    .user-info {
-        display: none !important;
-    }
-    
-    .navbar .username {
+
+    .nav-items {
         display: none;
     }
 }
 
-/* Dark mode styles */
+/* =====================
+   DARK MODE
+   ===================== */
 .dark-mode .navbar {
     background: #2d3748;
     box-shadow: 0 2px 10px rgba(0, 0, 0, 0.3);
 }
 
-.dark-mode .nav-toggle-btn {
+.dark-mode .navbar h1,
+.dark-mode .menu-button {
     color: #e2e8f0;
 }
 
-.dark-mode .navbar h1 {
+.dark-mode .nav-button {
     color: #e2e8f0;
 }
 
-.dark-mode .mobile-menu {
+.dark-mode .username {
+    color: #e2e8f0;
+}
+
+.dark-mode .menu {
     background: #2d3748;
-    border: 1px solid #4a5568;
-    box-shadow: 0 12px 32px 0 rgba(0,0,0,0.4), 0 2px 8px 0 rgba(0,0,0,0.2);
+    box-shadow: -5px 0 15px rgba(0, 0, 0, 0.4);
 }
 
-.dark-mode .mobile-menu .menu-header {
-    background: #1a202c;
+.dark-mode .menu-header {
     border-bottom: 1px solid #4a5568;
+}
+
+.dark-mode .menu-header h3 {
     color: #a78bfa;
 }
 
-.dark-mode .mobile-menu .menu-item {
+.dark-mode .menu-item {
     color: #e2e8f0;
-    border-bottom: 1px solid #4a5568;
 }
 
-.dark-mode .mobile-menu .menu-item:hover,
-.dark-mode .mobile-menu .menu-item:focus {
+.dark-mode .menu-item:hover,
+.dark-mode .menu-item.active {
     background: #4a5568;
     color: #a78bfa;
 }
 
-.dark-mode .mobile-menu .menu-item.active {
-    background: #4a5568;
+.dark-mode .menu-item i {
     color: #a78bfa;
-}
-
-.dark-mode .mobile-menu .menu-item i {
-    color: #a78bfa;
-}
-
-.dark-mode .mobile-menu .menu-item.active i {
-    color: #a78bfa;
-}
-
-/* Dropdown fade-in animation */
-@keyframes dropdown-fade-in {
-    from { 
-        opacity: 0; 
-        transform: translateY(-10px) scale(0.95); 
-    }
-    to { 
-        opacity: 1; 
-        transform: translateY(0) scale(1); 
-    }
 }

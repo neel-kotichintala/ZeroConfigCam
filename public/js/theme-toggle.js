@@ -1,62 +1,61 @@
 document.addEventListener('DOMContentLoaded', () => {
     const themeToggleBtn = document.getElementById('theme-toggle');
+    const mobileThemeToggleBtn = document.getElementById('mobile-theme-toggle');
     const moonIconClass = 'bx bxs-moon';
     const sunIconClass = 'bx bxs-sun';
 
-    function updateIcon(isDarkMode) {
-        const btnContent = themeToggleBtn.querySelector('.btn-content');
-        if (!btnContent) return;
-        btnContent.innerHTML = '';
+    function updateButton(button, isDarkMode) {
+        if (!button) return;
+        
+        button.innerHTML = '';
         const icon = document.createElement('i');
         const label = document.createElement('span');
-        label.className = 'toggle-label';
 
         if (isDarkMode) {
             icon.className = sunIconClass;
-            label.textContent = ' Light Mode';
+            label.textContent = 'Light Mode';
         } else {
             icon.className = moonIconClass;
-            label.textContent = ' Dark Mode';
+            label.textContent = 'Dark Mode';
         }
 
-        btnContent.appendChild(icon);
-        btnContent.appendChild(label);
+        button.appendChild(icon);
+        button.appendChild(label);
     }
 
-    if (themeToggleBtn) {
-        // Apply the saved theme on page load
-        if (localStorage.getItem('theme') === 'dark') {
-            document.body.classList.add('dark-mode');
-            updateIcon(true);
+    function toggleTheme() {
+        // Toggle dark mode on the body
+        document.body.classList.toggle('dark-mode');
+        const isDarkMode = document.body.classList.contains('dark-mode');
+
+        // Save the new theme preference
+        if (isDarkMode) {
+            localStorage.setItem('theme', 'dark');
         } else {
-            updateIcon(false);
+            localStorage.removeItem('theme');
         }
 
-        themeToggleBtn.addEventListener('click', () => {
-            // 1. Toggle dark mode on the body
-            document.body.classList.toggle('dark-mode');
-            const isDarkMode = document.body.classList.contains('dark-mode');
+        // Update both buttons
+        updateButton(themeToggleBtn, isDarkMode);
+        updateButton(mobileThemeToggleBtn, isDarkMode);
+    }
 
-            // 2. Save the new theme preference
-            if (isDarkMode) {
-                localStorage.setItem('theme', 'dark');
-            } else {
-                localStorage.removeItem('theme');
-            }
+    // Apply the saved theme on page load
+    const isDarkMode = localStorage.getItem('theme') === 'dark';
+    if (isDarkMode) {
+        document.body.classList.add('dark-mode');
+    }
+    
+    // Initialize both buttons
+    updateButton(themeToggleBtn, isDarkMode);
+    updateButton(mobileThemeToggleBtn, isDarkMode);
 
-            // 3. Update the icon
-            updateIcon(isDarkMode);
-
-            // 4. Find the new icon and apply the animation
-            const newIcon = themeToggleBtn.querySelector('i');
-            if (newIcon) {
-                newIcon.classList.add('animate-spin');
-
-                // 5. Remove the animation class after it finishes
-                setTimeout(() => {
-                    newIcon.classList.remove('animate-spin');
-                }, 500); // Must match the CSS transition duration
-            }
-        });
+    // Add event listeners to both buttons
+    if (themeToggleBtn) {
+        themeToggleBtn.addEventListener('click', toggleTheme);
+    }
+    
+    if (mobileThemeToggleBtn) {
+        mobileThemeToggleBtn.addEventListener('click', toggleTheme);
     }
 });
