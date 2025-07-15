@@ -25,6 +25,7 @@
 #define VSYNC_GPIO_NUM    25
 #define HREF_GPIO_NUM     23
 #define PCLK_GPIO_NUM     22
+#define LED_BUILTIN        4
 
 // WiFi & Server Configuration - IMPORTANT: CHANGE THIS TO YOUR SERVER'S IP ADDRESS
 #define WEBSOCKET_SERVER_HOST "192.168.1.232"
@@ -38,6 +39,13 @@ ESP32QRCodeReader reader{CAMERA_MODEL_AI_THINKER};
 void onMessageCallback(WebsocketsMessage message) {
   Serial.print("Got Message: ");
   Serial.println(message.data());
+}
+
+void flashOnceParsed() {
+  pinMode(LED_BUILTIN, OUTPUT);
+  digitalWrite(LED_BUILTIN, HIGH);  // turn the LED on (HIGH is the voltage level)
+  delay(10);                      // wait for a second
+  digitalWrite(LED_BUILTIN, LOW);   // turn the LED off by making the voltage LOW
 }
 
 esp_err_t init_camera_for_streaming() {
@@ -62,8 +70,8 @@ esp_err_t init_camera_for_streaming() {
   config.pin_reset = RESET_GPIO_NUM;
   config.xclk_freq_hz = 20000000;
   config.pixel_format = PIXFORMAT_JPEG;
-  config.frame_size = FRAMESIZE_VGA;
-  config.jpeg_quality = 12;
+  config.frame_size = FRAMESIZE_SVGA;
+  config.jpeg_quality = 16;
   config.fb_count = 2;
   
   esp_err_t err = esp_camera_init(&config);
@@ -81,11 +89,6 @@ void onQrCodeTask(void *pvParameters) {
 
   Serial.println("Task started. Point camera at a QR code.");
 
-  // Generate unique camera ID based on MAC address
-  String macAddress = WiFi.macAddress();
-  macAddress.replace(":", "");
-  cameraId = "CAM_" + macAddress;
-  Serial.println("Camera ID: " + cameraId);
 
   // 1. Loop until a valid QR code is scanned
   while (!qrCodeScanned) {
@@ -111,6 +114,7 @@ void onQrCodeTask(void *pvParameters) {
         if (ssid.length() > 0 && pass.length() > 0) {
           qrCodeScanned = true;
           Serial.println("QR code parsed successfully.");
+          flashOnceParsed();
           Serial.println("SSID: " + ssid);
           Serial.println("Password: [HIDDEN]");
         } else {
@@ -118,7 +122,7 @@ void onQrCodeTask(void *pvParameters) {
         }
       }
     }
-    vTaskDelay(200 / portTICK_PERIOD_MS);
+    vTaskDelay(20 / portTICK_PERIOD_MS);
   }
 
   // 2. Stop QR reader
@@ -132,6 +136,11 @@ void onQrCodeTask(void *pvParameters) {
   Serial.print("Connecting to WiFi");
   while (WiFi.status() != WL_CONNECTED) { delay(500); Serial.print("."); }
   Serial.println("\nWiFi OK");
+
+  String macAddress = WiFi.macAddress();
+  macAddress.replace(":", "");
+  cameraId = "CAM_" + macAddress;
+  Serial.println("Camera ID: " + cameraId);
 
   // 4. Re-initialize camera for streaming
   if (init_camera_for_streaming() != ESP_OK) {
@@ -201,7 +210,6 @@ void setup() {
   WRITE_PERI_REG(RTC_CNTL_BROWN_OUT_REG, 0);
   Serial.begin(115200);
   Serial.setDebugOutput(true);
-
   reader.setup();
   Serial.println("Setup QRCode Reader");
 
