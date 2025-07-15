@@ -1,5 +1,6 @@
 <!DOCTYPE html>
 <html lang="en">
+
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -48,16 +49,17 @@
             background: #ccc;
             cursor: not-allowed;
         }
+
         .modal {
-            display: none; 
-            position: fixed; 
-            z-index: 1000; 
+            display: none;
+            position: fixed;
+            z-index: 1000;
             left: 0;
             top: 0;
-            width: 100%; 
-            height: 100%; 
-            overflow: auto; 
-            background-color: rgba(0,0,0,0.7);
+            width: 100%;
+            height: 100%;
+            overflow: auto;
+            background-color: rgba(0, 0, 0, 0.7);
             justify-content: center;
             align-items: center;
         }
@@ -113,16 +115,21 @@
             display: flex;
             justify-content: space-between;
             align-items: center;
-            box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
         }
+
         .notification.hidden {
             display: none;
         }
+
         .notification.success {
-            background-color: #d4edda; /* Light green */
-            color: #155724; /* Dark green */
+            background-color: #d4edda;
+            /* Light green */
+            color: #155724;
+            /* Dark green */
             border: 1px solid #c3e6cb;
         }
+
         .notification p {
             margin: 0;
         }
@@ -300,8 +307,13 @@
         }
 
         @keyframes spin {
-            0% { transform: rotate(0deg); }
-            100% { transform: rotate(360deg); }
+            0% {
+                transform: rotate(0deg);
+            }
+
+            100% {
+                transform: rotate(360deg);
+            }
         }
 
         .form-actions {
@@ -310,47 +322,133 @@
             justify-content: center;
         }
 
+        /* Previous QR Codes Styles */
+        .qr-codes-list {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+            gap: 1.5rem;
+            margin-top: 1rem;
+        }
+
+        .qr-code-item {
+            background: #f7fafc;
+            border-radius: 8px;
+            padding: 1.5rem;
+            text-align: center;
+            border: 2px solid #e2e8f0;
+            transition: all 0.3s ease;
+        }
+
+        .qr-code-item:hover {
+            border-color: #667eea;
+            transform: translateY(-2px);
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+        }
+
+        .qr-code-preview {
+            background: white;
+            padding: 1rem;
+            border-radius: 8px;
+            display: inline-block;
+            margin-bottom: 1rem;
+            cursor: pointer;
+            transition: transform 0.2s ease;
+        }
+
+        .qr-code-preview:hover {
+            transform: scale(1.05);
+        }
+
+        .qr-code-preview img {
+            max-width: 150px;
+            height: auto;
+        }
+
+        .qr-code-info h4 {
+            color: #2d3748;
+            margin-bottom: 0.5rem;
+            font-size: 1.1rem;
+        }
+
+        .qr-code-info p {
+            color: #718096;
+            font-size: 0.9rem;
+            margin-bottom: 1rem;
+        }
+
+        .qr-code-actions {
+            display: flex;
+            gap: 0.5rem;
+            justify-content: center;
+        }
+
+        .qr-code-actions .btn {
+            font-size: 0.85rem;
+            padding: 0.4rem 0.8rem;
+        }
+
+        .loading-qr-codes {
+            text-align: center;
+            color: #718096;
+            padding: 2rem;
+        }
+
+        .no-qr-codes {
+            text-align: center;
+            color: #718096;
+            padding: 2rem;
+        }
+
+        .no-qr-codes i {
+            font-size: 3rem;
+            margin-bottom: 1rem;
+            opacity: 0.5;
+        }
+
         @media (max-width: 768px) {
             .container {
                 padding: 1rem;
             }
-            
+
             .setup-container {
                 padding: 1rem;
             }
-            
+
             .navbar {
                 padding: 1rem;
             }
-            
+
             .setup-steps {
                 flex-direction: column;
                 align-items: center;
                 gap: 0.5rem;
             }
-            
+
             .step:not(:last-child)::after {
                 content: '↓';
                 margin: 0.5rem 0;
             }
-            
+
             .form-actions {
                 flex-direction: column;
             }
         }
     </style>
 </head>
+
 <body>
     <nav class="navbar">
         <div class="logo-container">
             <img src="/assets/icons/Logo.png" alt="SimpleVision Logo" class="logo">
-            <a href="/dashboard" class="logo-link"><h1>SomethingVision</h1></a>
+            <a href="/dashboard" class="logo-link">
+                <h1>SomethingVision</h1>
+            </a>
         </div>
-        
+
         <button id="menu-button" class="menu-button" aria-label="Menu">
             <i class='bx bx-menu-alt-right'></i>
         </button>
-        
+
         <div class="nav-items">
             <span class="username" id="username"></span>
             <a href="/dashboard" class="nav-button">
@@ -430,23 +528,16 @@
             <div id="formSection" class="form-section">
                 <form id="setupForm">
                     <div class="form-group">
-                        <label for="cameraName">Camera Name</label>
-                        <input type="text" id="cameraName" name="cameraName" required 
-                               placeholder="e.g., Living Room Camera">
-                    </div>
-                    
-                    <div class="form-group">
                         <label for="wifiSSID">WiFi Network Name (SSID)</label>
-                        <input type="text" id="wifiSSID" name="wifiSSID" required 
-                               placeholder="Your WiFi network name">
+                        <input type="text" id="wifiSSID" name="wifiSSID" required placeholder="Your WiFi network name">
                     </div>
-                    
+
                     <div class="form-group">
                         <label for="wifiPassword">WiFi Password</label>
-                        <input type="password" id="wifiPassword" name="wifiPassword" required 
-                               placeholder="Your WiFi password">
+                        <input type="password" id="wifiPassword" name="wifiPassword" required
+                            placeholder="Your WiFi password">
                     </div>
-                    
+
                     <div class="form-actions">
                         <button type="submit" class="btn btn-primary" id="generateBtn">
                             <span id="generateLoading" class="loading hidden"></span>
@@ -459,25 +550,25 @@
             <!-- Step 2: QR Code -->
             <div id="qrSection" class="qr-section hidden">
                 <h3 style="margin-bottom: 1rem;">Scan this QR Code with your Camera</h3>
-                
+
                 <div id="qrCodeContainer" class="qr-git code-bordered">
                     <img id="qrCodeImage" src="" alt="QR Code" style="max-width: 300px;">
                 </div>
-                
+
                 <div class="qr-instructions">
                     <p><strong>Instructions:</strong></p>
                     <ol style="text-align: left; max-width: 400px; margin: 1rem auto;">
                         <li>Power on your camera</li>
                         <li>Wait for it to enter setup mode</li>
                         <li>Point the camera at this QR code</li>
-                        <li>The camera will automatically connect to WiFi and start streaming (LED Should Blink)</li>
+                        <li>The camera will automatically connect to WiFi</li>
+                        <li>Go to your dashboard to claim and name the camera</li>
                     </ol>
+                    <p style="margin-top: 1rem; color: #10b981; font-weight: 600;">
+                        💡 This QR code can be saved and reused for multiple cameras!
+                    </p>
                 </div>
-                
-                <div class="qr-timer">
-                    This QR code expires in: <span id="timeRemaining">30:00</span>
-                </div>
-                
+
                 <div class="form-actions" style="margin-top: 2rem;">
                     <button class="btn btn-secondary" onclick="goBackToForm()">← Back</button>
                     <button class="btn btn-primary" onclick="regenerateQR()">Regenerate</button>
@@ -489,10 +580,25 @@
                 <div class="icon">✅</div>
                 <h3>Camera Setup Complete!</h3>
                 <p style="margin: 1rem 0;">Your AMB82 camera has been successfully added and is now streaming.</p>
-                
+
                 <div class="form-actions">
                     <a href="/dashboard" class="btn btn-primary">View Dashboard</a>
                     <button class="btn btn-secondary" onclick="setupAnotherCamera()">+ Add Another Camera</button>
+                </div>
+            </div>
+        </div>
+
+        <!-- Previous QR Codes Section -->
+        <div id="previousQrSection" class="setup-container" style="margin-top: 2rem;">
+            <div class="setup-header">
+                <h3>Previous QR Codes</h3>
+                <p>Reuse previously generated QR codes for your WiFi networks</p>
+            </div>
+
+            <div id="qrCodesList" class="qr-codes-list">
+                <div class="loading-qr-codes">
+                    <div class="loading"></div>
+                    Loading saved QR codes...
                 </div>
             </div>
         </div>
@@ -504,33 +610,33 @@
             <button id="settings-close" class="settings-close">
                 <i class='bx bx-x'></i>
             </button>
-            
+
             <div class="settings-sidebar">
                 <div class="settings-header">
                     <h2>Settings</h2>
                 </div>
-                
+
                 <button class="settings-tab active" data-tab="appearance">
                     <i class='bx bx-palette'></i>
                     <span>Appearance</span>
                 </button>
-                
+
                 <button class="settings-tab" data-tab="network">
                     <i class='bx bx-wifi'></i>
                     <span>Network</span>
                 </button>
-                
+
                 <button class="settings-tab" data-tab="notifications">
                     <i class='bx bx-bell'></i>
                     <span>Notifications</span>
                 </button>
             </div>
-            
+
             <div class="settings-content">
                 <!-- Appearance Tab -->
                 <div id="appearance-tab" class="tab-content active">
                     <h3>Theme Settings</h3>
-                    
+
                     <div class="theme-option active" data-theme="light">
                         <div class="theme-info">
                             <div class="theme-icon light">
@@ -545,7 +651,7 @@
                             <i class='bx bx-check'></i>
                         </div>
                     </div>
-                    
+
                     <div class="theme-option" data-theme="dark">
                         <div class="theme-info">
                             <div class="theme-icon dark">
@@ -561,13 +667,13 @@
                         </div>
                     </div>
                 </div>
-                
+
                 <!-- Network Tab -->
                 <div id="network-tab" class="tab-content">
                     <h3>Network Settings</h3>
                     <p>Network configuration options will be available here.</p>
                 </div>
-                
+
                 <!-- Notifications Tab -->
                 <div id="notifications-tab" class="tab-content">
                     <h3>Notification Settings</h3>
@@ -590,4 +696,5 @@
     <script src="/scripts/mobile-navigation.js" defer></script>
     <script src="/scripts/settings-manager.js" defer></script>
 </body>
+
 </html>

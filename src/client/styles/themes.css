@@ -31,12 +31,11 @@ body.dark-mode .navbar {
 
 
 
-
 body.dark-mode .navbar h1,
 body.dark-mode .navbar .username,
 body.dark-mode .user-info .btn {
     color: #e2e8f0;
-    border-left-color: #4a5568; /* Adjust separator color for dark mode */
+    border-left-color: #21262f; /* Adjust separator color for dark mode */
 }
 
 body.dark-mode .theme-toggle-btn {

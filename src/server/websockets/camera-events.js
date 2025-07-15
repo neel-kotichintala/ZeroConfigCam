@@ -8,7 +8,7 @@ function initializeCameraSockets(server, wss, io, activeCameras) {
         wss.clients.forEach(function each(ws) {
             if (ws.isAlive === false) return ws.terminate();
             ws.isAlive = false;
-            ws.ping(() => {});
+            ws.ping(() => { });
         });
     }, 30000);
 
@@ -24,73 +24,121 @@ function initializeCameraSockets(server, wss, io, activeCameras) {
         if (pathname.startsWith('/socket.io/')) {
             return;
         }
-        const sessionId = pathname.substring(1);
 
-        if (!sessionId) {
-            console.log('Upgrade request with no session ID. Destroying socket.');
+        const cameraId = pathname.substring(1);
+
+        if (!cameraId) {
+            console.log('Upgrade request with no camera ID. Destroying socket.');
             return socket.destroy();
         }
 
-        db.get('SELECT * FROM setup_sessions WHERE session_id = ?', [sessionId], (err, row) => {
-            if (err) {
-                console.error('DB error during upgrade check:', err);
-                return socket.destroy();
-            }
-
-            if (row) {
-                console.log(`Valid session ID found for camera: ${sessionId}. Upgrading connection.`);
-                wss.handleUpgrade(request, socket, head, (ws) => {
-                    wss.emit('connection', ws, request, row); // Pass session row to connection handler
-                });
-            } else {
-                console.log(`No valid setup session found for ID: ${sessionId}. Destroying socket.`);
-                socket.destroy();
-            }
-        });
+        // Allow any camera to connect - they'll be in "pending" state until claimed by a user
+        console.log(`Camera attempting to connect with ID: ${cameraId}`);
+        
+        // Handle WebSocket upgrade with ESP32 compatibility
+        try {
+            wss.handleUpgrade(request, socket, head, (ws) => {
+                // Set ESP32-friendly options
+                ws.binaryType = 'arraybuffer';
+                wss.emit('connection', ws, request, { cameraId });
+            });
+        } catch (error) {
+            console.error('WebSocket upgrade failed:', error.message);
+            socket.destroy();
+        }
     });
 
     // Handle new camera connections
-    wss.on('connection', (ws, req, session) => {
+    wss.on('connection', (ws, req, data) => {
         ws.isAlive = true;
         ws.on('pong', () => {
             ws.isAlive = true;
         });
-        const { user_id, camera_name } = session;
-        const cameraId = session.session_id;
-
-        // Add or update camera in the database (upsert)
-        const sql = `
-            INSERT INTO cameras (camera_id, user_id, name, status) 
-            VALUES (?, ?, ?, 'online')
-            ON CONFLICT(camera_id) DO UPDATE SET
-                name = excluded.name,
-                status = 'online';
-        `;
-        db.run(sql, [cameraId, user_id, camera_name], (err) => {
-            if (err) {
-                console.error('Error upserting camera in DB:', err);
+        
+        // Add comprehensive error handling for ESP32 compatibility
+        ws.on('error', (error) => {
+            console.error('WebSocket error for camera', cameraId, ':', error.message);
+            
+            // Handle specific ESP32 WebSocket compatibility issues
+            if (error.code === 'WS_ERR_UNEXPECTED_RSV_2_3' || 
+                error.code === 'WS_ERR_UNEXPECTED_RSV_1' ||
+                error.message.includes('RSV')) {
+                console.log('🔧 ESP32 WebSocket compatibility issue detected - continuing anyway...');
+                // Don't close the connection for RSV errors - ESP32 quirk
+                return;
             }
+            
+            // For other errors, close the connection
+            console.log('❌ Closing WebSocket due to error:', error.code);
+            ws.terminate();
         });
 
-        activeCameras[cameraId] = { name: camera_name, userId: user_id, status: 'online' };
-        console.log(`Camera '${camera_name}' connected for user ${user_id}.`);
+        const { cameraId } = data;
 
-        // Notify the dashboard
-        io.to(String(user_id)).emit('cameraStatusUpdate', { cameraId, status: 'online', name: camera_name });
+        // Check if this camera already exists and is owned by someone
+        db.get('SELECT * FROM cameras WHERE camera_id = ?', [cameraId], (err, existingCamera) => {
+            if (err) {
+                console.error('Error checking existing camera:', err);
+                return ws.close();
+            }
 
-        // Notify the setup page that this specific session was successful
-        io.to(String(user_id)).emit('setupSuccess', { cameraId, name: camera_name });
+            if (existingCamera) {
+                // Camera already exists - reconnect to existing owner
+                const userId = existingCamera.user_id;
+                const cameraName = existingCamera.name;
 
-        ws.on('message', (message) => {
-            io.to(String(user_id)).emit('stream', { cameraId, frame: message });
-        });
+                activeCameras[cameraId] = { name: cameraName, userId: userId, status: 'online' };
+                console.log(`Camera '${cameraName}' reconnected for user ${userId}`);
 
-        ws.on('close', () => {
-            console.log(`Camera '${camera_name}' disconnected.`);
-            delete activeCameras[cameraId];
-            // Update status in DB
-            db.run('UPDATE cameras SET status = ? WHERE camera_id = ?', ['offline', cameraId]);
-            io.to(String(user_id)).emit('cameraStatusUpdate', { cameraId, status: 'offline', name: camera_name });
+                // Update status to online
+                db.run('UPDATE cameras SET status = ? WHERE camera_id = ?', ['online', cameraId]);
+
+                // Notify the owner's dashboard
+                io.to(String(userId)).emit('cameraStatusUpdate', {
+                    cameraId,
+                    status: 'online',
+                    name: cameraName
+                });
+
+                // Handle streaming
+                ws.on('message', (message) => {
+                    io.to(String(userId)).emit('stream', { cameraId, frame: message });
+                });
+
+                ws.on('close', () => {
+                    console.log(`Camera '${cameraName}' disconnected.`);
+                    delete activeCameras[cameraId];
+                    db.run('UPDATE cameras SET status = ? WHERE camera_id = ?', ['offline', cameraId]);
+                    io.to(String(userId)).emit('cameraStatusUpdate', {
+                        cameraId,
+                        status: 'offline',
+                        name: cameraName
+                    });
+                });
+            } else {
+                // New camera - WebSocket connected (already registered via HTTP)
+                console.log(`🎥 WEBSOCKET CONNECTED: '${cameraId}' - already registered via HTTP`);
+                
+                // Camera should already be in activeCameras from HTTP registration
+                // Just update the status if needed
+                if (activeCameras[cameraId]) {
+                    activeCameras[cameraId].status = 'pending';
+                } else {
+                    // Fallback if HTTP registration didn't work
+                    activeCameras[cameraId] = {
+                        name: `Camera ${cameraId.substring(0, 8)}`,
+                        userId: null,
+                        status: 'pending'
+                    };
+                }
+                
+                // Don't broadcast again - HTTP registration already did this
+
+                ws.on('close', () => {
+                    console.log(`Unclaimed camera '${cameraId}' disconnected.`);
+                    delete activeCameras[cameraId];
+                });
+            }
         });
     });
 }

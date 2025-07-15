@@ -178,6 +178,94 @@
             grid-column: 1 / -1;
         }
 
+        /* New Camera Notification Styles */
+        .notification.new-camera {
+            background: linear-gradient(135deg, #10b981 0%, #059669 100%);
+            color: white;
+            padding: 1rem 1.5rem;
+            border-radius: 12px;
+            margin-bottom: 2rem;
+            box-shadow: 0 4px 15px rgba(16, 185, 129, 0.3);
+            animation: slideInDown 0.5s ease-out;
+        }
+
+        .notification-content {
+            display: flex;
+            align-items: center;
+            gap: 1rem;
+        }
+
+        .notification-content i {
+            font-size: 2rem;
+            color: rgba(255, 255, 255, 0.9);
+        }
+
+        .notification-text {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            gap: 0.25rem;
+        }
+
+        .notification-text strong {
+            font-size: 1.1rem;
+            font-weight: 600;
+        }
+
+        .notification-text span {
+            font-size: 0.9rem;
+            opacity: 0.9;
+        }
+
+        .notification .btn {
+            margin-left: 0.5rem;
+        }
+
+        .notification .btn-primary {
+            background: rgba(255, 255, 255, 0.2);
+            color: white;
+            border: 1px solid rgba(255, 255, 255, 0.3);
+        }
+
+        .notification .btn-primary:hover {
+            background: rgba(255, 255, 255, 0.3);
+            transform: translateY(-1px);
+        }
+
+        .notification .btn-secondary {
+            background: rgba(255, 255, 255, 0.1);
+            color: rgba(255, 255, 255, 0.8);
+            border: 1px solid rgba(255, 255, 255, 0.2);
+        }
+
+        .notification .btn-secondary:hover {
+            background: rgba(255, 255, 255, 0.2);
+        }
+
+        @keyframes slideInDown {
+            from {
+                opacity: 0;
+                transform: translateY(-20px);
+            }
+
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        @media (max-width: 768px) {
+            .notification-content {
+                flex-direction: column;
+                text-align: center;
+                gap: 1rem;
+            }
+
+            .notification .btn {
+                margin: 0 0.25rem;
+            }
+        }
+
         /* Media Queries for remaining inline styles */
         @media (max-width: 768px) {
 
@@ -275,6 +363,8 @@
                 </button>
             </div>
         </div>
+
+        <!-- Manual claim notification removed - cameras are now auto-added -->
         <div id="camerasContainer" class="cameras-grid">
             <div id="noCamerasMessage" class="no-cameras">
                 <p>Waiting for camera connection...</p>

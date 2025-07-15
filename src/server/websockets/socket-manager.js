@@ -26,6 +26,17 @@ function initializeSocketIo(io, activeCameras) {
             }
         }
 
+        // Handle request for pending cameras
+        socket.on('getPendingCameras', () => {
+            const pendingCameras = Object.entries(activeCameras)
+                .filter(([_, camera]) => camera.status === 'pending' && camera.userId === null)
+                .map(([cameraId, camera]) => ({
+                    cameraId,
+                    name: camera.name
+                }));
+            socket.emit('pendingCamerasResponse', { cameras: pendingCameras });
+        });
+
         socket.on('disconnect', () => {
             console.log(`Dashboard client disconnected: ${socket.id}`);
         });

@@ -86,7 +86,7 @@
     background: none;
     color: #2d3748;
     font-weight: 500;
-    border-left: 1px solid #e2e8f0;
+    /*border-left: 1px solid #e2e8f0;*/
     position: relative;
     transition: all 0.2s;
 }

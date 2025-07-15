@@ -47,7 +47,12 @@ function createCameraCard(data) {
     card.id = `camera-${data.cameraId}`;
     card.innerHTML = `
         <div class="camera-header">
-            <h3 class="camera-name">${data.name}</h3>
+            <div class="camera-name-section">
+                <h3 class="camera-name" id="name-${data.cameraId}">${data.name}</h3>
+                <button class="btn btn-edit btn-sm" onclick="editCameraName('${data.cameraId}', '${data.name}')" title="Edit camera name">
+                    <i class='bx bx-edit'></i>
+                </button>
+            </div>
             <div class="camera-controls">
                 <span id="status-${data.cameraId}" class="camera-status status-${data.status}">${data.status}</span>
                 <button class="btn btn-danger btn-sm" onclick="deleteCamera('${data.cameraId}')">Delete</button>
@@ -137,6 +142,79 @@ socket.on('cameraStatusUpdate', (data) => {
         }
     }, 100); // A small delay to allow the DOM to update
 });
+
+// Remove manual claim functionality - cameras are now auto-added
+
+// Listen for auto-added camera notifications
+socket.on('cameraAutoAdded', (data) => {
+    console.log('✅ DASHBOARD: Camera auto-added:', data);
+    showCameraAddedNotification(data.name, data.message);
+});
+
+// Manual claim functionality removed - cameras are now auto-added
+
+// Show sleek notification for auto-added cameras
+function showCameraAddedNotification(cameraName, message) {
+    // Remove existing notification if it exists
+    const existingNotification = document.getElementById('camera-added-notification');
+    if (existingNotification) {
+        existingNotification.remove();
+    }
+    
+    // Create new notification element
+    const notification = document.createElement('div');
+    notification.id = 'camera-added-notification';
+    notification.className = 'camera-added-notification';
+    notification.innerHTML = `
+        <div class="notification-content">
+            <div class="notification-icon">
+                <svg width="48" height="48" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                    <circle cx="12" cy="12" r="10" fill="#10B981"/>
+                    <path d="M9 12l2 2 4-4" stroke="white" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                </svg>
+            </div>
+            <div class="notification-text">
+                <h4>Camera Added!</h4>
+                <p>${message}</p>
+            </div>
+            <div class="notification-actions">
+                <button class="btn btn-primary view-dashboard-btn">View Dashboard</button>
+                <button class="btn btn-secondary dismiss-added-btn">Dismiss</button>
+            </div>
+        </div>
+    `;
+    document.body.appendChild(notification);
+    
+    // Add event listeners to the new elements
+    notification.querySelector('.view-dashboard-btn').addEventListener('click', () => {
+        hideAddedNotification();
+        // Already on dashboard, just scroll to top
+        window.scrollTo({ top: 0, behavior: 'smooth' });
+    });
+    
+    notification.querySelector('.dismiss-added-btn').addEventListener('click', () => {
+        hideAddedNotification();
+    });
+    
+    // Show notification
+    setTimeout(() => {
+        notification.classList.add('show');
+    }, 100);
+    
+    // Auto-hide after 6 seconds
+    setTimeout(() => {
+        hideAddedNotification();
+    }, 6000);
+}
+
+function hideAddedNotification() {
+    const notification = document.getElementById('camera-added-notification');
+    if (notification) {
+        notification.classList.remove('show');
+    }
+}
+
+// Manual claim functionality removed - cameras are now auto-added
 
 // --- View Switching Logic ---
 const viewGridBtn = document.getElementById('view-grid');
@@ -230,6 +308,112 @@ document.addEventListener('DOMContentLoaded', () => {
     const savedView = localStorage.getItem('dashboardView') || 'grid';
     setView(savedView);
 });
+
+// Edit camera name functionality with inline text input
+function editCameraName(cameraId, currentName) {
+    const nameEl = document.getElementById(`name-${cameraId}`);
+    const editBtn = nameEl.parentElement.querySelector('.btn-edit');
+    
+    if (!nameEl || !editBtn) return;
+    
+    // Create input element
+    const input = document.createElement('input');
+    input.type = 'text';
+    input.value = currentName;
+    input.className = 'camera-name-input';
+    input.style.cssText = `
+        background: white;
+        border: 2px solid #667eea;
+        border-radius: 6px;
+        padding: 0.5rem;
+        font-size: 1rem;
+        font-weight: 600;
+        color: #2d3748;
+        width: 100%;
+        outline: none;
+        box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
+    `;
+    
+    // Replace name element with input
+    nameEl.style.display = 'none';
+    editBtn.style.display = 'none';
+    nameEl.parentElement.insertBefore(input, nameEl);
+    
+    // Focus and select text
+    input.focus();
+    input.select();
+    
+    // Save function
+    const saveChanges = async () => {
+        const newName = input.value.trim();
+        
+        if (!newName || newName === currentName) {
+            // Revert changes
+            input.remove();
+            nameEl.style.display = 'block';
+            editBtn.style.display = 'flex';
+            return;
+        }
+        
+        try {
+            const token = localStorage.getItem('token');
+            const response = await fetch(`/api/camera/${cameraId}/rename`, {
+                method: 'PUT',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'Authorization': `Bearer ${token}`
+                },
+                body: JSON.stringify({ name: newName })
+            });
+
+            const data = await response.json();
+
+            if (response.ok) {
+                // Update the UI
+                nameEl.textContent = newName;
+                editBtn.setAttribute('onclick', `editCameraName('${cameraId}', '${newName}')`);
+                
+                // Remove input and show name
+                input.remove();
+                nameEl.style.display = 'block';
+                editBtn.style.display = 'flex';
+                
+                console.log('Camera renamed successfully');
+            } else {
+                alert(data.error || 'Failed to rename camera');
+                // Revert changes
+                input.remove();
+                nameEl.style.display = 'block';
+                editBtn.style.display = 'flex';
+            }
+        } catch (error) {
+            console.error('Error renaming camera:', error);
+            alert('Network error. Please try again.');
+            // Revert changes
+            input.remove();
+            nameEl.style.display = 'block';
+            editBtn.style.display = 'flex';
+        }
+    };
+    
+    // Event listeners
+    input.addEventListener('keydown', (e) => {
+        if (e.key === 'Enter') {
+            e.preventDefault();
+            saveChanges();
+        } else if (e.key === 'Escape') {
+            // Cancel editing
+            input.remove();
+            nameEl.style.display = 'block';
+            editBtn.style.display = 'flex';
+        }
+    });
+    
+    input.addEventListener('blur', () => {
+        // Save when clicking outside
+        setTimeout(saveChanges, 100); // Small delay to allow other events to process
+    });
+}
 
 socket.on('stream', (data) => {
     const videoElement = document.getElementById(`video-${data.cameraId}`);

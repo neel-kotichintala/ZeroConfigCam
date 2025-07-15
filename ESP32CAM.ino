@@ -1,5 +1,6 @@
 #include "esp_camera.h"
 #include <WiFi.h>
+#include <HTTPClient.h>
 #include <ArduinoWebsockets.h>
 #include <ESP32QRCodeReader.h>
 #include <ArduinoJson.h>
@@ -76,9 +77,15 @@ esp_err_t init_camera_for_streaming() {
 void onQrCodeTask(void *pvParameters) {
   struct QRCodeData qrCodeData;
   bool qrCodeScanned = false;
-  String ssid, pass, sessionId;
+  String ssid, pass, cameraId;
 
   Serial.println("Task started. Point camera at a QR code.");
+
+  // Generate unique camera ID based on MAC address
+  String macAddress = WiFi.macAddress();
+  macAddress.replace(":", "");
+  cameraId = "CAM_" + macAddress;
+  Serial.println("Camera ID: " + cameraId);
 
   // 1. Loop until a valid QR code is scanned
   while (!qrCodeScanned) {
@@ -87,23 +94,27 @@ void onQrCodeTask(void *pvParameters) {
         String payload = String((const char *)qrCodeData.payload);
         Serial.printf("QR Code Payload: %s\n", payload.c_str());
 
-        // New parsing logic for S:<SSID>;P:<Password>;I:<SessionID>
+        // Simplified parsing logic for S:<SSID>;P:<Password>
         int ssid_start = payload.indexOf("S:") + 2;
         int ssid_end = payload.indexOf(";", ssid_start);
         ssid = payload.substring(ssid_start, ssid_end);
 
         int pass_start = payload.indexOf("P:") + 2;
+        // Handle case where password is at the end (no semicolon after)
         int pass_end = payload.indexOf(";", pass_start);
-        pass = payload.substring(pass_start, pass_end);
+        if (pass_end == -1) {
+          pass = payload.substring(pass_start);
+        } else {
+          pass = payload.substring(pass_start, pass_end);
+        }
 
-        int id_start = payload.indexOf("I:") + 2;
-        sessionId = payload.substring(id_start);
-
-        if (ssid.length() > 0 && pass.length() > 0 && sessionId.length() > 0) {
+        if (ssid.length() > 0 && pass.length() > 0) {
           qrCodeScanned = true;
           Serial.println("QR code parsed successfully.");
+          Serial.println("SSID: " + ssid);
+          Serial.println("Password: [HIDDEN]");
         } else {
-          Serial.println("QR code format is invalid. Expecting 'S:<SSID>;P:<Password>;I:<SessionID>'");
+          Serial.println("QR code format is invalid. Expecting 'S:<SSID>;P:<Password>'");
         }
       }
     }
@@ -129,13 +140,34 @@ void onQrCodeTask(void *pvParameters) {
   }
   Serial.println("Streaming camera init OK");
 
+  // 4.5. Register camera via HTTP first (more reliable than WebSocket)
+  Serial.println("Registering camera via HTTP...");
+  HTTPClient http;
+  http.begin("http://" + String(WEBSOCKET_SERVER_HOST) + ":" + String(WEBSOCKET_SERVER_PORT) + "/api/camera/register");
+  http.addHeader("Content-Type", "application/json");
+  
+  String payload = "{\"cameraId\":\"" + cameraId + "\"}";
+  int httpResponseCode = http.POST(payload);
+  
+  if (httpResponseCode > 0) {
+    String response = http.getString();
+    Serial.println("HTTP Registration Response: " + response);
+  } else {
+    Serial.println("HTTP Registration failed: " + String(httpResponseCode));
+  }
+  http.end();
+
   // 5. Connect to WebSocket Server
   String host = WEBSOCKET_SERVER_HOST;
   uint16_t port = WEBSOCKET_SERVER_PORT;
-  String path = "/" + sessionId;
+  String path = "/" + cameraId;
 
   Serial.println("Connecting to WS: " + host + ":" + String(port) + path);
   client.onMessage(onMessageCallback);
+  
+  // Configure WebSocket for better Node.js compatibility
+  client.setInsecure(); // For development - remove in production
+  
   for (int i = 1; i <= 50; i++) {
     if (!client.connect(host, port, path)) { 
         Serial.println("WS connect failed! Trying Again..."); 

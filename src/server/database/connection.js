@@ -33,6 +33,16 @@ const db = new sqlite3.Database('./database.db', (err) => {
                 status TEXT DEFAULT 'offline',
                 FOREIGN KEY (user_id) REFERENCES users(id)
             );
+
+            CREATE TABLE IF NOT EXISTS qr_codes (
+                id INTEGER PRIMARY KEY AUTOINCREMENT,
+                user_id INTEGER NOT NULL,
+                wifi_ssid TEXT NOT NULL,
+                wifi_password TEXT NOT NULL,
+                qr_data TEXT NOT NULL,
+                created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+                FOREIGN KEY (user_id) REFERENCES users(id)
+            );
         `, (err) => {
             if (err) {
                 console.error('Error creating tables', err.message);
