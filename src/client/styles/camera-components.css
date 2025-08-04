@@ -4,25 +4,98 @@
 .cameras-grid {
     display: grid;
     gap: 2rem;
-    /* Starts with 1 column, expands up to 4 based on width */
-    grid-template-columns: repeat(auto-fit, minmax(320px, 1fr));
+    /* Default: single column on mobile */
+    grid-template-columns: 1fr;
+}
+
+/* Grid view: Responsive grid with maximum 3 columns */
+@media (min-width: 768px) {
+    .cameras-grid:not(.list-view):not(.full-view) {
+        /* 1-2 columns on medium screens */
+        grid-template-columns: repeat(auto-fit, minmax(320px, 1fr));
+    }
+}
+
+@media (min-width: 1200px) {
+    .cameras-grid:not(.list-view):not(.full-view) {
+        /* Up to 3 columns on large screens */
+        grid-template-columns: repeat(auto-fit, minmax(350px, 1fr));
+    }
+}
+
+/* Enforce maximum 3 columns by switching to explicit column count */
+@media (min-width: 1400px) {
+    .cameras-grid:not(.list-view):not(.full-view) {
+        /* Explicit 3-column max with flexible sizing */
+        grid-template-columns: repeat(auto-fit, minmax(400px, 1fr));
+        max-width: 1600px; /* Prevents more than 3 columns: 3*400 + 4*2rem gaps = 1424px */
+        margin: 0 auto;
+    }
+}
+
+/* Ultra-wide screens: maintain 3 columns max */
+@media (min-width: 1800px) {
+    .cameras-grid:not(.list-view):not(.full-view) {
+        /* Force exactly 3 columns maximum */
+        grid-template-columns: repeat(3, 1fr);
+        max-width: 1800px;
+        margin: 0 auto;
+    }
+}
+
+/* Single camera: centered and larger */
+.cameras-grid.single-camera:not(.list-view):not(.full-view) {
+    grid-template-columns: 1fr !important;
+    max-width: 800px !important;
+    margin: 0 auto;
+}
+
+/* Two cameras: always 2 columns on larger screens */
+@media (min-width: 768px) {
+    .cameras-grid.two-cameras:not(.list-view):not(.full-view) {
+        grid-template-columns: repeat(2, 1fr) !important;
+        max-width: 1200px !important;
+        margin: 0 auto;
+    }
+}
+
+/* Alternative for browsers that support :has() */
+.cameras-grid:not(.list-view):not(.full-view):has(.camera-card:only-child) {
+    grid-template-columns: 1fr !important;
+    max-width: 800px !important;
+    margin: 0 auto;
 }
 
 /* ----- List View ---------------------------------------------------- */
 .cameras-grid.list-view {
-    grid-template-columns: 1fr; /* single column */
+    display: block; /* Change from grid to block for vertical scrolling */
+    gap: 0; /* Remove gap since we're using margins */
 }
+
 .cameras-grid.list-view .camera-card {
+    /* Same size as full screen view */
+    width: 100%;
     max-width: 1200px;
-    margin: 0 auto;            /* centre the large card */
+    margin: 0 auto 2rem auto; /* Center horizontally, add bottom margin for spacing */
+    display: block;
+}
+
+/* Remove bottom margin from last card */
+.cameras-grid.list-view .camera-card:last-child {
+    margin-bottom: 0;
 }
 
 /* ----- Full-view (carousel) ---------------------------------------- */
 .cameras-grid.full-view {
     position: relative;
-    display: block;            /* override grid display */
+    display: block;
+    /* override grid display */
 }
-.cameras-grid.full-view .camera-card { display: none; }
+
+.cameras-grid.full-view .camera-card {
+    display: none;
+}
+
 .cameras-grid.full-view .camera-card.active {
     display: block;
     width: 100%;
@@ -45,7 +118,10 @@
     margin-bottom: 1rem;
 }
 
-.camera-name { font-size: 1.1rem; font-weight: 600; }
+.camera-name {
+    font-size: 1.1rem;
+    font-weight: 600;
+}
 
 .camera-status {
     padding: 0.25rem 0.75rem;
@@ -53,26 +129,376 @@
     font-size: 0.8rem;
     font-weight: 500;
 }
-.status-online   { background: #c6f6d5; color: #2f855a; }
-.status-offline  { background: #fed7d7; color: #c53030; }
-.status-streaming{ background: #bee3f8; color: #2b6cb0; }
+
+.status-online {
+    background: #c6f6d5;
+    color: #2f855a;
+}
+
+.status-offline {
+    background: #fed7d7;
+    color: #c53030;
+}
+
+.status-streaming {
+    background: #bee3f8;
+    color: #2b6cb0;
+}
 
 /* Video container keeps 4:3 aspect ratio */
 .video-container {
     position: relative;
     width: 100%;
-    padding-top: 75%;   /* 4:3 */
+    padding-top: 75%;
+    /* 4:3 */
     background: #000;
     border-radius: 8px;
     overflow: hidden;
 }
+
 .video-element {
     position: absolute;
     top: 0;
     left: 0;
     width: 100%;
     height: 100%;
-    object-fit: cover;
+    object-fit: contain;
+    /* Changed from cover to contain to ensure frame fits */
+}
+
+/* Camera Settings Button */
+.camera-settings-button {
+    position: absolute;
+    bottom: 10px;
+    right: 10px;
+    background: rgba(0, 0, 0, 0.7);
+    color: white;
+    border: none;
+    border-radius: 50%;
+    width: 40px;
+    height: 40px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    opacity: 0;
+    visibility: hidden;
+    transition: all 0.3s ease;
+    z-index: 10;
+    font-size: 1.2rem;
+}
+
+.video-container:hover .camera-settings-button {
+    opacity: 1;
+    visibility: visible;
+}
+
+.camera-settings-button:hover {
+    background: rgba(0, 0, 0, 0.9);
+    transform: scale(1.1);
+}
+
+/* Camera Settings Modal - Responsive */
+.camera-settings-modal {
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: rgba(0, 0, 0, 0.8);
+    display: none;
+    align-items: center;
+    justify-content: center;
+    z-index: 20;
+    border-radius: 8px;
+}
+
+.camera-settings-modal.show {
+    display: flex;
+}
+
+/* Make camera card relative for absolute positioning */
+.camera-card {
+    position: relative;
+}
+
+/* Mobile: Full-screen modal */
+@media (max-width: 768px) {
+    .camera-settings-modal {
+        position: fixed;
+        top: 0;
+        left: 0;
+        right: 0;
+        bottom: 0;
+        z-index: 1000;
+        border-radius: 0;
+    }
+}
+
+.settings-panel {
+    background: var(--bg-primary, white);
+    border-radius: 12px;
+    padding: 1.5rem;
+    box-shadow: 0 10px 30px rgba(0, 0, 0, 0.3);
+    min-width: 280px;
+    max-width: 90%;
+    border: 1px solid var(--border-color, #e2e8f0);
+}
+
+.settings-panel h4 {
+    margin: 0 0 1rem 0;
+    color: var(--text-primary, #2d3748);
+    font-size: 1.1rem;
+    text-align: center;
+    border-bottom: 2px solid var(--border-color, #e2e8f0);
+    padding-bottom: 0.5rem;
+}
+
+/* Dark mode support for settings panel */
+[data-theme="dark"] .settings-panel {
+    background: var(--bg-primary, #2d3748);
+    border-color: var(--border-color, #4a5568);
+    box-shadow: 0 10px 30px rgba(0, 0, 0, 0.6);
+}
+
+[data-theme="dark"] .settings-panel h4 {
+    color: var(--text-primary, #f7fafc);
+    border-bottom-color: var(--border-color, #4a5568);
+}
+
+.setting-group {
+    margin-bottom: 1.5rem;
+}
+
+.setting-group:last-child {
+    margin-bottom: 0;
+}
+
+.setting-label {
+    display: block;
+    margin-bottom: 0.5rem;
+    font-weight: 600;
+    color: var(--text-secondary, #4a5568);
+    font-size: 0.9rem;
+}
+
+.setting-control {
+    width: 100%;
+}
+
+.setting-select {
+    width: 100%;
+    padding: 0.5rem;
+    border: 2px solid var(--border-color, #e2e8f0);
+    border-radius: 6px;
+    font-size: 0.9rem;
+    background: var(--bg-secondary, white);
+    color: var(--text-primary, #2d3748);
+    cursor: pointer;
+    transition: border-color 0.2s ease;
+}
+
+.setting-select:focus {
+    outline: none;
+    border-color: #667eea;
+    box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
+}
+
+/* Dark mode support for setting controls */
+[data-theme="dark"] .setting-label {
+    color: var(--text-secondary, #a0aec0);
+}
+
+[data-theme="dark"] .setting-select {
+    background: var(--bg-secondary, #4a5568);
+    border-color: var(--border-color, #4a5568);
+    color: var(--text-primary, #f7fafc);
+}
+
+[data-theme="dark"] .setting-select:focus {
+    border-color: #667eea;
+    box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.2);
+}
+
+.quality-slider-container {
+    position: relative;
+}
+
+.quality-slider {
+    width: 100%;
+    height: 6px;
+    border-radius: 3px;
+    background: var(--border-color, #e2e8f0);
+    outline: none;
+    -webkit-appearance: none;
+    appearance: none;
+    cursor: pointer;
+}
+
+.quality-slider::-webkit-slider-thumb {
+    -webkit-appearance: none;
+    appearance: none;
+    width: 18px;
+    height: 18px;
+    border-radius: 50%;
+    background: #667eea;
+    cursor: pointer;
+    box-shadow: 0 2px 6px rgba(0, 0, 0, 0.2);
+    transition: all 0.2s ease;
+}
+
+.quality-slider::-webkit-slider-thumb:hover {
+    background: #5a67d8;
+    transform: scale(1.1);
+}
+
+.quality-slider::-moz-range-thumb {
+    width: 18px;
+    height: 18px;
+    border-radius: 50%;
+    background: #667eea;
+    cursor: pointer;
+    border: none;
+    box-shadow: 0 2px 6px rgba(0, 0, 0, 0.2);
+}
+
+.quality-value {
+    position: absolute;
+    top: -30px;
+    left: 50%;
+    transform: translateX(-50%);
+    background: var(--text-primary, #2d3748);
+    color: var(--bg-primary, white);
+    padding: 0.25rem 0.5rem;
+    border-radius: 4px;
+    font-size: 0.8rem;
+    font-weight: 600;
+    opacity: 0;
+    transition: opacity 0.2s ease;
+    pointer-events: none;
+}
+
+.quality-slider:hover+.quality-value,
+.quality-slider:focus+.quality-value {
+    opacity: 1;
+}
+
+.quality-info {
+    font-size: 0.75rem;
+    color: var(--text-muted, #718096);
+    margin-top: 0.25rem;
+    text-align: center;
+}
+
+.settings-buttons {
+    display: flex;
+    gap: 0.5rem;
+    margin-top: 1rem;
+}
+
+.settings-btn {
+    flex: 1;
+    padding: 0.5rem 1rem;
+    border: none;
+    border-radius: 6px;
+    font-size: 0.9rem;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.2s ease;
+}
+
+.settings-btn-apply {
+    background: #667eea;
+    color: white;
+}
+
+.settings-btn-apply:hover {
+    background: #5a67d8;
+    transform: translateY(-1px);
+}
+
+.settings-btn-apply:disabled {
+    background: #a0aec0;
+    cursor: not-allowed;
+    transform: none;
+}
+
+.settings-btn-cancel {
+    background: var(--bg-secondary, #e2e8f0);
+    color: var(--text-secondary, #4a5568);
+}
+
+.settings-btn-cancel:hover {
+    background: var(--border-color, #cbd5e0);
+}
+
+/* Camera Message Animations */
+@keyframes slideInDown {
+    from {
+        opacity: 0;
+        transform: translateY(-20px);
+    }
+
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+.camera-message {
+    animation: slideInDown 0.3s ease-out;
+}
+
+/* Dark mode support for all settings components */
+[data-theme="dark"] .quality-slider {
+    background: var(--border-color, #4a5568);
+}
+
+[data-theme="dark"] .quality-value {
+    background: var(--text-primary, #f7fafc);
+    color: var(--bg-primary, #2d3748);
+}
+
+[data-theme="dark"] .quality-info {
+    color: var(--text-muted, #a0aec0);
+}
+
+[data-theme="dark"] .settings-btn-cancel {
+    background: var(--bg-secondary, #4a5568);
+    color: var(--text-secondary, #a0aec0);
+}
+
+[data-theme="dark"] .settings-btn-cancel:hover {
+    background: var(--border-color, #718096);
+}
+
+/* Responsive adjustments for settings overlay */
+@media (max-width: 480px) {
+    .settings-panel {
+        padding: 1rem;
+        min-width: 250px;
+    }
+
+    .settings-panel h4 {
+        font-size: 1rem;
+    }
+
+    .setting-label {
+        font-size: 0.8rem;
+    }
+
+    .setting-select {
+        font-size: 0.8rem;
+        padding: 0.4rem;
+    }
+
+    .settings-buttons {
+        flex-direction: column;
+    }
+
+    .settings-btn {
+        padding: 0.6rem 1rem;
+    }
 }
 
 /* Placeholder when no cameras yet */
@@ -98,21 +524,30 @@
     border-radius: 50%;
     user-select: none;
 }
-.carousel-nav.prev { left: 1rem; }
-.carousel-nav.next { right: 1rem; }
-.carousel-nav:hover { background: rgba(0, 0, 0, 0.8); }
+
+.carousel-nav.prev {
+    left: 1rem;
+}
+
+.carousel-nav.next {
+    right: 1rem;
+}
+
+.carousel-nav:hover {
+    background: rgba(0, 0, 0, 0.8);
+}
 
 /* ----- Media Queries ------------------------------------------------ */
 @media (max-width: 768px) {
-    /* On smaller screens, force List View for Grid mode */
-    .cameras-grid:not(.full-view) { grid-template-columns: 1fr; }
-    .cameras-grid.list-view .camera-card,
-    .cameras-grid .camera-card { flex-direction: column; }
-}
 
-@media (min-width: 1600px) {
-    /* Limit columns to 4 on very wide screens */
-    .cameras-grid:not(.list-view):not(.full-view) {
-        grid-template-columns: repeat(4, 1fr);
+    /* On smaller screens, force List View for Grid mode */
+    .cameras-grid:not(.full-view) {
+        grid-template-columns: 1fr;
+    }
+
+    .cameras-grid.list-view .camera-card,
+    .cameras-grid .camera-card {
+        flex-direction: column;
     }
 }
+

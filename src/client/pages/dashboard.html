@@ -280,13 +280,7 @@
             }
         }
 
-        @media (min-width: 1600px) {
-
-            /* Limit columns to 4 on very wide screens */
-            .cameras-grid:not(.list-view):not(.full-view) {
-                grid-template-columns: repeat(4, 1fr);
-            }
-        }
+        /* Grid layout is now handled in camera-components.css */
     </style>
 </head>
 
@@ -462,6 +456,8 @@
             </div>
         </div>
     </div>
+
+
 
     <script src="/socket.io/socket.io.js"></script>
     <script src="/shared/utils.js"></script>

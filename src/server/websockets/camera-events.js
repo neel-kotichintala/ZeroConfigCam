@@ -100,14 +100,43 @@ function initializeCameraSockets(server, wss, io, activeCameras) {
                     name: cameraName
                 });
 
-                // Handle streaming
+                // Store WebSocket reference for camera control
+                activeCameras[cameraId].ws = ws;
+                
+                // Handle streaming and control messages
                 ws.on('message', (message) => {
-                    io.to(String(userId)).emit('stream', { cameraId, frame: message });
+                    // Check if this is a text message (camera control response) or binary (video frame)
+                    if (typeof message === 'string' || (message instanceof Buffer && message[0] < 0x80)) {
+                        // Text message - likely a control response or status update
+                        console.log(`📝 Control message from camera ${cameraId}:`, message.toString());
+                        
+                        // Forward control responses to the dashboard
+                        io.to(String(userId)).emit('camera-control-response', {
+                            cameraId,
+                            message: message.toString(),
+                            timestamp: Date.now()
+                        });
+                    } else {
+                        // Binary message - video frame
+                        const frameSize = message.byteLength || message.length || 0;
+                        console.log(`📡 Received frame from camera ${cameraId}: ${frameSize} bytes, type: ${message.constructor.name}`);
+                        io.to(String(userId)).emit('stream', { 
+                            cameraId, 
+                            frame: message,
+                            frameType: 'binary',
+                            frameSize: frameSize,
+                            timestamp: Date.now()
+                        });
+                    }
                 });
 
                 ws.on('close', () => {
                     console.log(`Camera '${cameraName}' disconnected.`);
-                    delete activeCameras[cameraId];
+                    // Clean up WebSocket reference
+                    if (activeCameras[cameraId]) {
+                        delete activeCameras[cameraId].ws;
+                        delete activeCameras[cameraId];
+                    }
                     db.run('UPDATE cameras SET status = ? WHERE camera_id = ?', ['offline', cameraId]);
                     io.to(String(userId)).emit('cameraStatusUpdate', {
                         cameraId,
