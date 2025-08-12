@@ -1,0 +1,165 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Camera Dashboard</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@400;500;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="/styles/main.css">
+    <link href='https://unpkg.com/boxicons@2.1.4/css/boxicons.min.css' rel='stylesheet'>
+    <style>
+        /* Retain inline styles used in original for page-specific UI */
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body { font-family: 'Roboto', sans-serif; background: #f5f7fa; min-height: 100vh; }
+        .btn { padding: 0.5rem 1rem; border: none; border-radius: 5px; cursor: pointer; text-decoration: none; display: inline-flex; align-items: center; gap: 0.5rem; transition: all 0.3s ease; font-family: 'Roboto', sans-serif; }
+        .btn-primary { background: #667eea; color: white; }
+        .btn-primary:hover { background: #5a67d8; }
+        .btn-secondary { background: #e2e8f0; color: #4a5568; }
+        .btn-secondary:hover { background: #cbd5e0; }
+        .btn-danger { background: #e53e3e; color: white; }
+        .btn-danger:hover { background: #c53030; }
+        .btn-sm { padding: 0.25rem 0.6rem; font-size: 0.8rem; }
+        .camera-header .camera-controls { display: flex; align-items: center; gap: 1rem; }
+        .modal-overlay { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0, 0, 0, 0.5); display: none; justify-content: center; align-items: center; z-index: 1000; }
+        .modal-content { background: white; padding: 2rem; border-radius: 8px; text-align: center; max-width: 400px; box-shadow: 0 5px 15px rgba(0, 0, 0, 0.3); }
+        .modal-content h3 { margin-top: 0; margin-bottom: 1rem; color: #2d3748; }
+        .modal-content p { margin-bottom: 2rem; color: #4a5568; }
+        .modal-buttons { display: flex; justify-content: center; gap: 1rem; }
+        .container { max-width: 1200px; margin: 0 auto; padding: 2rem; }
+        .section-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 2rem; }
+        .section-header h2 { color: #2d3748; }
+        .view-controls { display: flex; gap: 0.5rem; }
+        .view-controls .btn { background: white; border: 2px solid #e2e8f0; padding: 0.75rem; border-radius: 8px; cursor: pointer; transition: all 0.2s ease; display: flex; align-items: center; justify-content: center; }
+        .view-controls .btn:hover { border-color: #9677ef; background: #f8fafc; transform: translateY(-1px); box-shadow: 0 4px 12px rgba(150, 119, 239, 0.15); }
+        .view-controls .btn.active { border-color: #9677ef; background: #9677ef; color: white; box-shadow: 0 4px 12px rgba(150, 119, 239, 0.25); }
+        .view-controls .btn i { font-size: 1.25rem; color: #4a5568; }
+        .view-controls .btn.active i { color: white; }
+        .no-cameras { text-align: center; padding: 3rem; color: #718096; grid-column: 1 / -1; }
+        .notification.new-camera { background: linear-gradient(135deg, #10b981 0%, #059669 100%); color: white; padding: 1rem 1.5rem; border-radius: 12px; margin-bottom: 2rem; box-shadow: 0 4px 15px rgba(16, 185, 129, 0.3); animation: slideInDown 0.5s ease-out; }
+        .notification-content { display: flex; align-items: center; gap: 1rem; }
+        .notification-content i { font-size: 2rem; color: rgba(255, 255, 255, 0.9); }
+        .notification-text { flex: 1; display: flex; flex-direction: column; gap: 0.25rem; }
+        .notification-text strong { font-size: 1.1rem; font-weight: 600; }
+        .notification-text span { font-size: 0.9rem; opacity: 0.9; }
+        .notification .btn { margin-left: 0.5rem; }
+        .notification .btn-primary { background: rgba(255, 255, 255, 0.2); color: white; border: 1px solid rgba(255, 255, 255, 0.3); }
+        .notification .btn-primary:hover { background: rgba(255, 255, 255, 0.3); transform: translateY(-1px); }
+        .notification .btn-secondary { background: rgba(255, 255, 255, 0.1); color: rgba(255, 255, 255, 0.8); border: 1px solid rgba(255, 255, 255, 0.2); }
+        .notification .btn-secondary:hover { background: rgba(255, 255, 255, 0.2); }
+        @keyframes slideInDown { from { opacity: 0; transform: translateY(-20px); } to { opacity: 1; transform: translateY(0);} }
+        @media (max-width: 768px) { .notification-content { flex-direction: column; text-align: center; gap: 1rem; } .notification .btn { margin: 0 0.25rem; } .cameras-grid:not(.full-view) { grid-template-columns: 1fr; } .cameras-grid.list-view .camera-card, .cameras-grid .camera-card { flex-direction: column; } }
+        /* Grid layout is now handled in camera-components.css */
+    </style>
+</head>
+
+<body>
+    <nav class="navbar">
+        <div class="logo-container">
+            <img src="/assets/icons/Logo.png" alt="SimpleVision Logo" class="logo">
+            <a href="/dashboard" class="logo-link">
+                <h1>SomethingVision</h1>
+            </a>
+        </div>
+
+        <button id="menu-button" class="menu-button" aria-label="Menu">
+            <i class='bx bx-menu-alt-right'></i>
+        </button>
+
+        <div class="nav-items">
+            <span class="username" id="username"></span>
+            <a href="/dashboard" class="nav-button active">
+                <i class='bx bxs-dashboard'></i>
+                <span>Dashboard</span>
+            </a>
+            <a href="/setup" class="nav-button">
+                <i class='bx bx-camera'></i>
+                <span>Setup</span>
+            </a>
+            <button id="settings-button" class="nav-button">
+                <i class='bx bx-cog'></i>
+                <span>Settings</span>
+            </button>
+            <button class="nav-button" onclick="logout()">
+                <i class='bx bx-log-out'></i>
+                <span>Logout</span>
+            </button>
+        </div>
+    </nav>
+
+    <!-- Mobile Menu -->
+    <div id="menu-overlay" class="menu-overlay"></div>
+    <div id="menu" class="menu">
+        <div class="menu-header">
+            <h3 id="mobile-username">Menu</h3>
+        </div>
+        <a href="/dashboard" class="menu-item active">
+            <i class='bx bxs-dashboard'></i>
+            <span>Dashboard</span>
+        </a>
+        <a href="/setup" class="menu-item">
+            <i class='bx bx-camera'></i>
+            <span>Setup</span>
+        </a>
+        <button id="mobile-settings-button" class="menu-item">
+            <i class='bx bx-cog'></i>
+            <span>Settings</span>
+        </button>
+        <button class="menu-item" onclick="logout()">
+            <i class='bx bx-log-out'></i>
+            <span>Logout</span>
+        </button>
+    </div>
+
+    <div class="container">
+        <div class="section-header">
+            <h2>Your Cameras</h2>
+            <div class="view-controls">
+                <button id="view-grid" class="btn active" title="Grid View">
+                    <i class='bx bx-grid-alt'></i>
+                </button>
+                <button id="view-list" class="btn" title="List View">
+                    <i class='bx bx-list-ul'></i>
+                </button>
+                <button id="view-full" class="btn" title="Full View">
+                    <i class='bx bx-fullscreen'></i>
+                </button>
+            </div>
+        </div>
+
+        <div id="camerasContainer" class="cameras-grid">
+            <div id="noCamerasMessage" class="no-cameras">
+                <p>Waiting for camera connection...</p>
+            </div>
+        </div>
+    </div>
+
+    <!-- Delete Confirmation Modal -->
+    <div id="delete-modal" class="modal-overlay">
+        <div class="modal-content">
+            <h3>Delete Camera</h3>
+            <p>Are you sure you want to permanently delete this camera? This action cannot be undone.</p>
+            <div class="modal-buttons">
+                <button id="cancel-delete-btn" class="btn btn-secondary">Cancel</button>
+                <button id="confirm-delete-btn" class="btn btn-danger">Confirm Delete</button>
+            </div>
+        </div>
+    </div>
+
+    <script src="/socket.io/socket.io.js"></script>
+    <script src="/shared/utils.js"></script>
+    <script src="/scripts/page-transitions.js"></script>
+    <script src="/scripts/streaming/imageBinaryConverter.js"></script>
+    <script src="/scripts/streaming/frameProcessor.js"></script>
+    <script src="/scripts/dashboard/ui.js"></script>
+    <script src="/scripts/dashboard/settingsModal.js"></script>
+    <script src="/scripts/dashboard/handlers.js"></script>
+    <script src="/scripts/dashboard/index.js" defer></script>
+    <script src="/scripts/mobile-navigation.js" defer></script>
+    <script src="/scripts/settings-manager.js" defer></script>
+</body>
+
+</html>
+

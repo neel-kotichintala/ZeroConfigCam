@@ -1,0 +1,15 @@
+// Copied from original
+class PageTransitions {
+  constructor() { this.init(); }
+  init() { this.createTransitionOverlay(); this.bindNavigationEvents(); this.addPageLoadAnimation(); }
+  createTransitionOverlay() { if (document.getElementById('page-transition-overlay')) return; const overlay = document.createElement('div'); overlay.id = 'page-transition-overlay'; overlay.className = 'page-transition-overlay'; document.body.appendChild(overlay); }
+  bindNavigationEvents() { const navButtons = document.querySelectorAll('.nav-button[href], .menu-item[href]'); navButtons.forEach((button) => { button.addEventListener('click', (e) => { e.preventDefault(); const href = button.getAttribute('href'); this.navigateWithTransition(href); }); }); window.navigateToPage = (href) => { this.navigateWithTransition(href); }; }
+  navigateWithTransition(href) { const overlay = document.getElementById('page-transition-overlay'); const pageContent = document.querySelector('.container, .setup-container, body'); if (pageContent) pageContent.classList.add('fade-out'); overlay.classList.add('active'); setTimeout(() => { window.location.href = href; }, 200); }
+  addPageLoadAnimation() { document.addEventListener('DOMContentLoaded', () => { const pageContent = document.querySelector('.container, .setup-container'); if (pageContent) { pageContent.classList.add('fade-in'); } const overlay = document.getElementById('page-transition-overlay'); if (overlay) { setTimeout(() => { overlay.classList.remove('active'); }, 100); } }); }
+  showSuccessAnimation(options = {}) { const { title = 'Success!', message = 'Operation completed successfully', buttonText = 'Continue', onContinue = () => {} } = options; const successOverlay = document.createElement('div'); successOverlay.className = 'setup-success-animation'; successOverlay.innerHTML = `<div class="success-content"><div class="success-icon"><i class='bx bx-check'></i></div><div class="success-title">${title}</div><div class="success-message">${message}</div><button class="success-button">${buttonText}</button></div>`; document.body.appendChild(successOverlay); setTimeout(() => { successOverlay.classList.add('active'); }, 100); const continueBtn = successOverlay.querySelector('.success-button'); continueBtn.addEventListener('click', () => { successOverlay.classList.remove('active'); setTimeout(() => { document.body.removeChild(successOverlay); onContinue(); }, 300); }); return successOverlay; }
+  scrollToTop(duration = 300) { const start = window.pageYOffset; const startTime = performance.now(); const animateScroll = (currentTime) => { const timeElapsed = currentTime - startTime; const progress = Math.min(timeElapsed / duration, 1); const ease = this.easeOutCubic(progress); window.scrollTo(0, start * (1 - ease)); if (progress < 1) { requestAnimationFrame(animateScroll); } }; requestAnimationFrame(animateScroll); }
+  easeOutCubic(t) { return 1 - Math.pow(1 - t, 3); }
+}
+document.addEventListener('DOMContentLoaded', () => { window.pageTransitions = new PageTransitions(); });
+if (typeof module !== 'undefined' && module.exports) { module.exports = PageTransitions; }
+

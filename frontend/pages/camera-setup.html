@@ -11,428 +11,66 @@
     <link rel="stylesheet" href="/styles/main.css">
     <link href='https://unpkg.com/boxicons@2.1.4/css/boxicons.min.css' rel='stylesheet'>
     <style>
-        * {
-            margin: 0;
-            padding: 0;
-            box-sizing: border-box;
-        }
-
-        body {
-            font-family: 'Roboto', sans-serif;
-            background: #f5f7fa;
-            min-height: 100vh;
-        }
-
-        .btn {
-            padding: 0.5rem 1rem;
-            border: none;
-            border-radius: 5px;
-            cursor: pointer;
-            text-decoration: none;
-            display: inline-flex;
-            align-items: center;
-            gap: 0.5rem;
-            transition: all 0.3s ease;
-            font-family: 'Roboto', sans-serif;
-        }
-
-        .btn-primary {
-            background: #667eea;
-            color: white;
-        }
-
-        .btn-primary:hover {
-            background: #5a67d8;
-        }
-
-        .btn:disabled {
-            background: #ccc;
-            cursor: not-allowed;
-        }
-
-        .modal {
-            display: none;
-            position: fixed;
-            z-index: 1000;
-            left: 0;
-            top: 0;
-            width: 100%;
-            height: 100%;
-            overflow: auto;
-            background-color: rgba(0, 0, 0, 0.7);
-            justify-content: center;
-            align-items: center;
-        }
-
-        .modal-content {
-            margin: auto;
-            display: block;
-            width: 80%;
-            max-width: 500px;
-            border: 10px solid #00ff7f;
-        }
-
-        .close {
-            position: absolute;
-            top: 15px;
-            right: 35px;
-            color: #f1f1f1;
-            font-size: 40px;
-            font-weight: bold;
-            transition: 0.3s;
-        }
-
-        .close:hover,
-        .close:focus {
-            color: #bbb;
-            text-decoration: none;
-            cursor: pointer;
-        }
-
-        .qr-code-bordered {
-            padding: 15px;
-            border: 5px solid #00ff7f;
-            display: inline-block;
-            background-color: white;
-            cursor: pointer;
-        }
-
-        .btn:disabled {
-            background: #ccc;
-            cursor: not-allowed;
-        }
-
-        .container {
-            max-width: 800px;
-            margin: 0 auto;
-            padding: 2rem;
-        }
-
-        .notification {
-            padding: 1rem 1.5rem;
-            border-radius: 8px;
-            margin-bottom: 2rem;
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
-        }
-
-        .notification.hidden {
-            display: none;
-        }
-
-        .notification.success {
-            background-color: #d4edda;
-            /* Light green */
-            color: #155724;
-            /* Dark green */
-            border: 1px solid #c3e6cb;
-        }
-
-        .notification p {
-            margin: 0;
-        }
-
-        .setup-container {
-            background: white;
-            border-radius: 10px;
-            padding: 2rem;
-            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
-        }
-
-        .setup-header {
-            text-align: center;
-            margin-bottom: 2rem;
-        }
-
-        .setup-header h2 {
-            color: #2d3748;
-            margin-bottom: 0.5rem;
-        }
-
-        .setup-header p {
-            color: #718096;
-        }
-
-        .setup-steps {
-            display: flex;
-            justify-content: center;
-            margin-bottom: 2rem;
-        }
-
-        .step {
-            display: flex;
-            align-items: center;
-            color: #718096;
-            font-size: 0.9rem;
-        }
-
-        .step.active {
-            color: #667eea;
-            font-weight: 600;
-        }
-
-        .step-number {
-            background: #e2e8f0;
-            color: #4a5568;
-            width: 24px;
-            height: 24px;
-            border-radius: 50%;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            margin-right: 0.5rem;
-            font-size: 0.8rem;
-            font-weight: bold;
-        }
-
-        .step.active .step-number {
-            background: #667eea;
-            color: white;
-        }
-
-        .step:not(:last-child)::after {
-            content: '→';
-            margin: 0 1rem;
-            color: #cbd5e0;
-        }
-
-        .form-section {
-            margin-bottom: 2rem;
-        }
-
-        .form-group {
-            margin-bottom: 1rem;
-        }
-
-        label {
-            display: block;
-            margin-bottom: 0.5rem;
-            color: #2d3748;
-            font-weight: 500;
-        }
-
-        input[type="text"],
-        input[type="password"] {
-            width: 100%;
-            padding: 0.75rem;
-            border: 2px solid #e2e8f0;
-            border-radius: 5px;
-            font-size: 1rem;
-            transition: border-color 0.3s ease;
-        }
-
-        input[type="text"]:focus,
-        input[type="password"]:focus {
-            outline: none;
-            border-color: #667eea;
-        }
-
-        .qr-section {
-            text-align: center;
-            padding: 2rem;
-            background: #f7fafc;
-            border-radius: 8px;
-            margin-bottom: 2rem;
-        }
-
-        .qr-code {
-            background: white;
-            padding: 1rem;
-            border-radius: 8px;
-            display: inline-block;
-            margin-bottom: 1rem;
-            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
-        }
-
-        .qr-instructions {
-            color: #4a5568;
-            font-size: 0.9rem;
-            line-height: 1.5;
-        }
-
-        .qr-timer {
-            color: #e53e3e;
-            font-weight: 600;
-            margin-top: 0.5rem;
-        }
-
-        .success-section {
-            text-align: center;
-            padding: 2rem;
-            background: #f0fff4;
-            border: 1px solid #9ae6b4;
-            border-radius: 8px;
-            color: #2f855a;
-        }
-
-        .success-section .icon {
-            font-size: 3rem;
-            margin-bottom: 1rem;
-        }
-
-        .alert {
-            padding: 1rem;
-            margin-bottom: 1rem;
-            border-radius: 5px;
-            font-size: 0.9rem;
-        }
-
-        .alert-error {
-            background: #fed7d7;
-            color: #c53030;
-            border: 1px solid #feb2b2;
-        }
-
-        .alert-info {
-            background: #bee3f8;
-            color: #2b6cb0;
-            border: 1px solid #90cdf4;
-        }
-
-        .hidden {
-            display: none;
-        }
-
-        .loading {
-            display: inline-block;
-            width: 20px;
-            height: 20px;
-            border: 3px solid #f3f3f3;
-            border-top: 3px solid #667eea;
-            border-radius: 50%;
-            animation: spin 1s linear infinite;
-            margin-right: 10px;
-        }
-
-        @keyframes spin {
-            0% {
-                transform: rotate(0deg);
-            }
-
-            100% {
-                transform: rotate(360deg);
-            }
-        }
-
-        .form-actions {
-            display: flex;
-            gap: 1rem;
-            justify-content: center;
-        }
-
-        /* Previous QR Codes Styles */
-        .qr-codes-list {
-            display: grid;
-            grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
-            gap: 1.5rem;
-            margin-top: 1rem;
-        }
-
-        .qr-code-item {
-            background: #f7fafc;
-            border-radius: 8px;
-            padding: 1.5rem;
-            text-align: center;
-            border: 2px solid #e2e8f0;
-            transition: all 0.3s ease;
-        }
-
-        .qr-code-item:hover {
-            border-color: #667eea;
-            transform: translateY(-2px);
-            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
-        }
-
-        .qr-code-preview {
-            background: white;
-            padding: 1rem;
-            border-radius: 8px;
-            display: inline-block;
-            margin-bottom: 1rem;
-            cursor: pointer;
-            transition: transform 0.2s ease;
-        }
-
-        .qr-code-preview:hover {
-            transform: scale(1.05);
-        }
-
-        .qr-code-preview img {
-            max-width: 150px;
-            height: auto;
-        }
-
-        .qr-code-info h4 {
-            color: #2d3748;
-            margin-bottom: 0.5rem;
-            font-size: 1.1rem;
-        }
-
-        .qr-code-info p {
-            color: #718096;
-            font-size: 0.9rem;
-            margin-bottom: 1rem;
-        }
-
-        .qr-code-actions {
-            display: flex;
-            gap: 0.5rem;
-            justify-content: center;
-        }
-
-        .qr-code-actions .btn {
-            font-size: 0.85rem;
-            padding: 0.4rem 0.8rem;
-        }
-
-        .loading-qr-codes {
-            text-align: center;
-            color: #718096;
-            padding: 2rem;
-        }
-
-        .no-qr-codes {
-            text-align: center;
-            color: #718096;
-            padding: 2rem;
-        }
-
-        .no-qr-codes i {
-            font-size: 3rem;
-            margin-bottom: 1rem;
-            opacity: 0.5;
-        }
-
-        @media (max-width: 768px) {
-            .container {
-                padding: 1rem;
-            }
-
-            .setup-container {
-                padding: 1rem;
-            }
-
-            .navbar {
-                padding: 1rem;
-            }
-
-            .setup-steps {
-                flex-direction: column;
-                align-items: center;
-                gap: 0.5rem;
-            }
-
-            .step:not(:last-child)::after {
-                content: '↓';
-                margin: 0.5rem 0;
-            }
-
-            .form-actions {
-                flex-direction: column;
-            }
-        }
+        /* Inline styles preserved from original for this page */
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body { font-family: 'Roboto', sans-serif; background: #f5f7fa; min-height: 100vh; }
+        .btn { padding: 0.5rem 1rem; border: none; border-radius: 5px; cursor: pointer; text-decoration: none; display: inline-flex; align-items: center; gap: 0.5rem; transition: all 0.3s ease; font-family: 'Roboto', sans-serif; }
+        .btn-primary { background: #667eea; color: white; }
+        .btn-primary:hover { background: #5a67d8; }
+        .btn:disabled { background: #ccc; cursor: not-allowed; }
+        .modal { display: none; position: fixed; z-index: 1000; left: 0; top: 0; width: 100%; height: 100%; overflow: auto; background-color: rgba(0, 0, 0, 0.7); justify-content: center; align-items: center; }
+        .modal-content { margin: auto; display: block; width: 80%; max-width: 500px; border: 10px solid #00ff7f; }
+        .close { position: absolute; top: 15px; right: 35px; color: #f1f1f1; font-size: 40px; font-weight: bold; transition: 0.3s; }
+        .close:hover, .close:focus { color: #bbb; text-decoration: none; cursor: pointer; }
+        .qr-code-bordered { padding: 15px; border: 5px solid #00ff7f; display: inline-block; background-color: white; cursor: pointer; }
+        .btn:disabled { background: #ccc; cursor: not-allowed; }
+        .container { max-width: 800px; margin: 0 auto; padding: 2rem; }
+        .notification { padding: 1rem 1.5rem; border-radius: 8px; margin-bottom: 2rem; display: flex; justify-content: space-between; align-items: center; box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1); }
+        .notification.hidden { display: none; }
+        .notification.success { background-color: #d4edda; color: #155724; border: 1px solid #c3e6cb; }
+        .notification p { margin: 0; }
+        .setup-container { background: white; border-radius: 10px; padding: 2rem; box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1); }
+        .setup-header { text-align: center; margin-bottom: 2rem; }
+        .setup-header h2 { color: #2d3748; margin-bottom: 0.5rem; }
+        .setup-header p { color: #718096; }
+        .setup-steps { display: flex; justify-content: center; margin-bottom: 2rem; }
+        .step { display: flex; align-items: center; color: #718096; font-size: 0.9rem; }
+        .step.active { color: #667eea; font-weight: 600; }
+        .step-number { background: #e2e8f0; color: #4a5568; width: 24px; height: 24px; border-radius: 50%; display: flex; align-items: center; justify-content: center; margin-right: 0.5rem; font-size: 0.8rem; font-weight: bold; }
+        .step.active .step-number { background: #667eea; color: white; }
+        .step:not(:last-child)::after { content: '→'; margin: 0 1rem; color: #cbd5e0; }
+        .form-section { margin-bottom: 2rem; }
+        .form-group { margin-bottom: 1rem; }
+        label { display: block; margin-bottom: 0.5rem; color: #2d3748; font-weight: 500; }
+        input[type="text"], input[type="password"] { width: 100%; padding: 0.75rem; border: 2px solid #e2e8f0; border-radius: 5px; font-size: 1rem; transition: border-color 0.3s ease; }
+        input[type="text"]:focus, input[type="password"]:focus { outline: none; border-color: #667eea; }
+        .qr-section { text-align: center; padding: 2rem; background: #f7fafc; border-radius: 8px; margin-bottom: 2rem; }
+        .qr-code { background: white; padding: 1rem; border-radius: 8px; display: inline-block; margin-bottom: 1rem; box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1); }
+        .qr-instructions { color: #4a5568; font-size: 0.9rem; line-height: 1.5; }
+        .qr-timer { color: #e53e3e; font-weight: 600; margin-top: 0.5rem; }
+        .success-section { text-align: center; padding: 2rem; background: #f0fff4; border: 1px solid #9ae6b4; border-radius: 8px; color: #2f855a; }
+        .success-section .icon { font-size: 3rem; margin-bottom: 1rem; }
+        .alert { padding: 1rem; margin-bottom: 1rem; border-radius: 5px; font-size: 0.9rem; }
+        .alert-error { background: #fed7d7; color: #c53030; border: 1px solid #feb2b2; }
+        .alert-info { background: #bee3f8; color: #2b6cb0; border: 1px solid #90cdf4; }
+        .hidden { display: none; }
+        .loading { display: inline-block; width: 20px; height: 20px; border: 3px solid #f3f3f3; border-top: 3px solid #667eea; border-radius: 50%; animation: spin 1s linear infinite; margin-right: 10px; }
+        @keyframes spin { 0% { transform: rotate(0deg);} 100% { transform: rotate(360deg);} }
+        .form-actions { display: flex; gap: 1rem; justify-content: center; }
+        .qr-codes-list { display: grid; grid-template-columns: repeat(auto-fill, minmax(300px, 1fr)); gap: 1.5rem; margin-top: 1rem; }
+        .qr-code-item { background: #f7fafc; border-radius: 8px; padding: 1.5rem; text-align: center; border: 2px solid #e2e8f0; transition: all 0.3s ease; }
+        .qr-code-item:hover { border-color: #667eea; transform: translateY(-2px); box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1); }
+        .qr-code-preview { background: white; padding: 1rem; border-radius: 8px; display: inline-block; margin-bottom: 1rem; cursor: pointer; transition: transform 0.2s ease; }
+        .qr-code-preview:hover { transform: scale(1.05); }
+        .qr-code-preview img { max-width: 150px; height: auto; }
+        .qr-code-info h4 { color: #2d3748; margin-bottom: 0.5rem; font-size: 1.1rem; }
+        .qr-code-info p { color: #718096; font-size: 0.9rem; margin-bottom: 1rem; }
+        .qr-code-actions { display: flex; gap: 0.5rem; justify-content: center; }
+        .qr-code-actions .btn { font-size: 0.85rem; padding: 0.4rem 0.8rem; }
+        .loading-qr-codes { text-align: center; color: #718096; padding: 2rem; }
+        .no-qr-codes { text-align: center; color: #718096; padding: 2rem; }
+        .no-qr-codes i { font-size: 3rem; margin-bottom: 1rem; opacity: 0.5; }
+        @media (max-width: 768px) { .container { padding: 1rem; } .setup-container { padding: 1rem; } .navbar { padding: 1rem; } .setup-steps { flex-direction: column; align-items: center; gap: 0.5rem; } .step:not(:last-child)::after { content: '↓'; margin: 0.5rem 0; } .form-actions { flex-direction: column; } }
     </style>
 </head>
 
@@ -534,8 +172,7 @@
 
                     <div class="form-group">
                         <label for="wifiPassword">WiFi Password</label>
-                        <input type="password" id="wifiPassword" name="wifiPassword" required
-                            placeholder="Your WiFi password">
+                        <input type="password" id="wifiPassword" name="wifiPassword" required placeholder="Your WiFi password">
                     </div>
 
                     <div class="form-actions">
@@ -564,9 +201,7 @@
                         <li>The camera will automatically connect to WiFi</li>
                         <li>Go to your dashboard to claim and name the camera</li>
                     </ol>
-                    <p style="margin-top: 1rem; color: #10b981; font-weight: 600;">
-                        💡 This QR code can be saved and reused for multiple cameras!
-                    </p>
+                    <p style="margin-top: 1rem; color: #10b981; font-weight: 600;">💡 This QR code can be saved and reused for multiple cameras!</p>
                 </div>
 
                 <div class="form-actions" style="margin-top: 2rem;">
@@ -698,3 +333,4 @@
 </body>
 
 </html>
+
