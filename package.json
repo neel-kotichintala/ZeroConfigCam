@@ -2,10 +2,10 @@
   "name": "rtsp-cam-streamer",
   "version": "1.0.0",
   "description": "Web application for streaming RTSP video from AMB82 cameras with QR setup",
-  "main": "src/server/app.js",
+  "main": "backend/app.js",
   "scripts": {
-    "start": "node src/server/app.js",
-    "dev": "nodemon src/server/app.js",
+    "start": "node backend/app.js",
+    "dev": "nodemon backend/app.js",
     "clean": "rm -rf public server",
     "structure": "echo 'Check STRUCTURE.md for file organization guide'"
   },
@@ -20,9 +20,9 @@
     "helmet": "^7.0.0",
     "jsonwebtoken": "^9.0.2",
     "multer": "^1.4.5-lts.1",
+    "pg": "^8.16.3",
     "qrcode": "^1.5.3",
     "socket.io": "^4.7.2",
-    "sqlite3": "^5.1.6",
     "uuid": "^9.0.0",
     "websocket": "^1.0.35",
     "ws": "^8.18.3"
