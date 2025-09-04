@@ -27,5 +27,8 @@ FirstQRCodeLibrary
 /.vscode
 
 # Arduino/ESP32 files
-esp32cam.ino
+ESP32CAM.ino
+
+# Build configuration
+builder.config.json
 
