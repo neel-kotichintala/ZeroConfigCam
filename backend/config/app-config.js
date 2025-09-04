@@ -1,5 +1,19 @@
 // Application Configuration
 // Centralized configuration for the entire app
+const os = require('os');
+
+// Get local IP address
+function getLocalIP() {
+  const interfaces = os.networkInterfaces();
+  for (const name of Object.keys(interfaces)) {
+    for (const interface of interfaces[name]) {
+      if (interface.family === 'IPv4' && !interface.internal) {
+        return interface.address;
+      }
+    }
+  }
+  return 'localhost';
+}
 
 const config = {
   // Server configuration
@@ -7,6 +21,7 @@ const config = {
     port: process.env.PORT || 3000,
     host: process.env.HOST || 'localhost',
     environment: process.env.NODE_ENV || 'development',
+    address: getLocalIP(),
   },
 
   // Database configuration

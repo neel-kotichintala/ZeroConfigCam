@@ -23,5 +23,9 @@ STRUCTURE.md
 
 FirstQRCodeLibrary
 
-/kiro
+/.kiro
+/.vscode
+
+# Arduino/ESP32 files
+esp32cam.ino
 

@@ -161,6 +161,7 @@ process.on('SIGINT', () => {
     server.listen(config.server.port, '0.0.0.0', () => {
       console.log(`🚀 Server running on port ${config.server.port}`);
       console.log(`📱 Environment: ${config.server.environment}`);
+      console.log(`Local IP: ${config.server.address}` )
       console.log(`🌐 Accessible on the local network`);
     });
   } catch (e) {
